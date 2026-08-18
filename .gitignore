@@ -1,0 +1,30 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+vendor/
+dist/
+build/
+bin/
+obj/
+target/
+
+# Tests and local data
+coverage/
+.pytest_cache/
+*.db
+*.sqlite
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Editors and operating system
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
