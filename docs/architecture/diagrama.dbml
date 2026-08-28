@@ -1,0 +1,232 @@
+Enum user_goal { CUTTING BULKING MAINTENANCE RECOMPOSITION }
+Enum food_source { TBCA OPEN_FOOD_FACTS USDA MANUAL }
+Enum meal_input_method { BARCODE PLANNED_MEAL PHOTO MANUAL }
+Enum cosmetic_type { TAG AVATAR FRAME BACKGROUND }
+Enum member_role { ADMIN MEMBER }
+
+Table users {
+  id uuid [pk]
+  email varchar [unique, not null]
+  password_hash varchar [not null]
+  username varchar [unique, not null]
+  display_name varchar [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table user_profiles {
+  user_id uuid [pk, ref: - users.id]
+  birth_date date
+  gender varchar
+  height_cm decimal
+  current_weight_kg decimal
+  goal user_goal [default: 'MAINTENANCE']
+  activity_level varchar
+  avatar_config jsonb
+}
+
+Table body_measurements {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  weight_kg decimal [not null]
+  measured_at timestamp
+}
+
+Table user_stats {
+  user_id uuid [pk, ref: - users.id]
+  current_streak int [default: 0]
+  best_streak int [default: 0]
+  total_points int [default: 0]
+  last_activity_at timestamp
+}
+
+Table foods {
+  id uuid [pk]
+  name varchar [not null]
+  source food_source [not null]
+  external_id varchar
+  barcode varchar [unique]
+  calories_per_100g decimal [not null]
+  protein_per_100g decimal [not null]
+  carbs_per_100g decimal [not null]
+  fat_per_100g decimal [not null]
+  fiber_per_100g decimal [default: 0]
+  serving_size_g decimal [default: 100]
+  created_at timestamp
+  updated_at timestamp
+  Indexes { name barcode }
+}
+
+Table diet_plans {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  title varchar [not null]
+  status varchar [default: 'ACTIVE']
+  target_calories int [not null]
+  target_protein decimal [not null]
+  target_carbs decimal [not null]
+  target_fat decimal [not null]
+  target_fiber decimal [default: 0]
+  start_date date
+  end_date date
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table planned_meals {
+  id uuid [pk]
+  diet_plan_id uuid [ref: > diet_plans.id]
+  name varchar [not null]
+  order_index int [default: 1]
+  target_calories int
+  target_protein decimal
+  target_carbs decimal
+  target_fat decimal
+}
+
+Table planned_meal_items {
+  id uuid [pk]
+  planned_meal_id uuid [ref: > planned_meals.id]
+  food_id uuid [ref: > foods.id]
+  amount_grams decimal [not null]
+  calories int [not null]
+  protein decimal [not null]
+  carbs decimal [not null]
+  fat decimal [not null]
+  fiber decimal [default: 0]
+}
+
+Table meal_logs {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  planned_meal_id uuid [ref: > planned_meals.id]
+  name varchar [not null]
+  photo_url varchar
+  consumed_at timestamp [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table meal_log_items {
+  id uuid [pk]
+  meal_log_id uuid [ref: > meal_logs.id]
+  food_id uuid [ref: > foods.id]
+  amount_grams decimal [not null]
+  calories int [not null]
+  protein decimal [not null]
+  carbs decimal [not null]
+  fat decimal [not null]
+  fiber decimal [default: 0]
+  input_method meal_input_method [not null]
+}
+
+Table groups {
+  id uuid [pk]
+  name varchar [not null]
+  description text
+  invite_code varchar(8) [unique, not null]
+  created_at timestamp
+}
+
+Table group_members {
+  group_id uuid [ref: > groups.id]
+  user_id uuid [ref: > users.id]
+  role member_role [default: 'MEMBER']
+  joined_at timestamp
+  Indexes { (group_id, user_id) [pk] }
+}
+
+Table group_challenges {
+  id uuid [pk]
+  group_id uuid [ref: > groups.id]
+  title varchar [not null]
+  description text
+  start_at timestamp [not null]
+  end_at timestamp [not null]
+  status varchar [default: 'ACTIVE']
+  created_at timestamp
+}
+
+Table feed_posts {
+  id uuid [pk]
+  group_id uuid [ref: > groups.id]
+  user_id uuid [ref: > users.id]
+  meal_log_id uuid [ref: > meal_logs.id]
+  content text
+  created_at timestamp
+}
+
+Table post_reactions {
+  id uuid [pk]
+  post_id uuid [ref: > feed_posts.id]
+  user_id uuid [ref: > users.id]
+  reaction_type varchar [not null]
+  created_at timestamp
+  Indexes { (post_id, user_id) [unique] }
+}
+
+Table chat_messages {
+  id uuid [pk]
+  group_id uuid [ref: > groups.id]
+  user_id uuid [ref: > users.id]
+  message text [not null]
+  created_at timestamp
+}
+
+Table point_transactions {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  amount int [not null]
+  reason varchar [not null]
+  reference_type varchar
+  reference_id uuid
+  created_at timestamp
+}
+
+Table achievements {
+  id uuid [pk]
+  code varchar [unique, not null]
+  title varchar [not null]
+  description text
+  icon_url varchar
+}
+
+Table user_achievements {
+  user_id uuid [ref: > users.id]
+  achievement_id uuid [ref: > achievements.id]
+  unlocked_at timestamp
+  Indexes { (user_id, achievement_id) [pk] }
+}
+
+Table daily_missions {
+  id uuid [pk]
+  title varchar [not null]
+  target_count int [default: 1]
+  points_reward int [not null]
+}
+
+Table user_daily_missions {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  mission_id uuid [ref: > daily_missions.id]
+  current_progress int [default: 0]
+  is_claimed boolean [default: false]
+  date date [not null]
+  Indexes { (user_id, mission_id, date) [pk] }
+}
+
+Table cosmetic_items {
+  id uuid [pk]
+  name varchar [not null]
+  description text
+  type cosmetic_type [not null]
+  price int [not null]
+  asset_url varchar [not null]
+}
+
+Table user_cosmetics {
+  user_id uuid [ref: > users.id]
+  cosmetic_item_id uuid [ref: > cosmetic_items.id]
+  acquired_at timestamp
+  Indexes { (user_id, cosmetic_item_id) [pk] }
+}
