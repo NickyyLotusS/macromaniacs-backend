@@ -1,344 +1,260 @@
-# Arquitetura de Dados, Modelagem & Engenharia de Banco — MacroManiacs
+# Banco de dados — MacroManiacs
 
-> Documentação técnica oficial e integral do banco de dados relacional do ecossistema **MacroManiacs Backend**.
+Este documento descreve o banco relacional do escopo atual. Ele deve ser atualizado na mesma mudança que alterar `prisma/schema.prisma`, migrations ou `diagrama.dbml`.
 
----
+## Tecnologias e convenções
 
-## 1. Visão Geral & Tecnologias
+- PostgreSQL 15.
+- Prisma ORM e Prisma Client 5.22.
+- Tabelas e colunas físicas em `snake_case`; modelos e campos Prisma em `PascalCase`/`camelCase`.
+- Chaves primárias UUID v4 geradas pelo Prisma Client.
+- Instantes em `TIMESTAMPTZ`; datas civis em `DATE`.
+- Valores monetários da loja são pontos inteiros, não moeda fiduciária.
+- `created_at` tem default no banco. `updated_at` é atualizado pelo Prisma Client por meio de `@updatedAt`; SQL externo deve atualizá-lo explicitamente.
+- `CHECK` constraints ficam nas migrations SQL porque o Prisma 5 não consegue representá-las no schema declarativo.
 
-| Item | Detalhe |
+O schema preserva exatamente 23 modelos. Funcionalidades citadas em versões antigas da documentação — refresh tokens, papel global de usuário, metas de hidratação, sódio, tipo fixo de refeição, posts globais e quests semanais — não fazem parte do escopo atual.
+
+## Enums
+
+| Enum | Valores |
 |---|---|
-| **SGBD** | PostgreSQL 15 (Containerizado via Docker) |
-| **ORM** | Prisma ORM v5 |
-| **Normalização** | 3ª Forma Normal (3NF) com suporte a semiestruturação controlada via JSONB |
-| **Identificadores Únicos** | UUID v4 em todas as chaves primárias |
-| **Porta Local Padrão** | `5433` (mapeada para `5432` dentro do container, evitando conflitos de porta nativos no macOS/Linux) |
+| `UserGoal` | `WEIGHT_LOSS`, `MUSCLE_GAIN`, `STRENGTH_GAIN`, `MAINTENANCE`, `PERFORMANCE`, `RECOMPOSITION` |
+| `BiologicalSex` | `FEMALE`, `MALE`, `NOT_INFORMED` |
+| `ActivityLevel` | `SEDENTARY`, `LIGHT`, `MODERATE`, `INTENSE`, `VERY_INTENSE` |
+| `FoodSource` | `TBCA`, `OPEN_FOOD_FACTS`, `USDA`, `MANUAL` |
+| `MealInputMethod` | `BARCODE`, `PLANNED_MEAL`, `PHOTO`, `MANUAL` |
+| `CosmeticType` | `TAG`, `AVATAR`, `FRAME`, `BACKGROUND` |
+| `MemberRole` | `ADMIN`, `MEMBER` |
+| `DietPlanStatus` | `DRAFT`, `ACTIVE`, `COMPLETED`, `ARCHIVED` |
+| `GroupChallengeStatus` | `SCHEDULED`, `ACTIVE`, `COMPLETED`, `CANCELLED` |
+| `ReactionType` | `LIKE`, `FIRE`, `CLAP` |
+| `PointTransactionReason` | `DAILY_MISSION_COMPLETED`, `ACHIEVEMENT_UNLOCKED`, `MEAL_LOG_STREAK`, `COSMETIC_PURCHASE`, `ADMIN_ADJUSTMENT` |
 
----
+## Identidade, onboarding e progresso
 
-## 2. Padrões Arquiteturais Adotados
+### `users`
 
-### 2.1. Snapshot Pattern (`meal_log_items`)
-
-O diário alimentar consome os dados do catálogo (`foods`), mas grava uma **cópia física e imutável** dos macronutrientes (`calories`, `protein`, `carbs`, `fat`) no momento exato do consumo.
-
-**Objetivo:** alterações futuras na tabela de alimentos ou atualizações de dados de provedores externos não alteram retroativamente o histórico nutricional dos usuários.
-
-### 2.2. Provider Pattern & Base Normalizada 100g (`foods`)
-
-- Suporte nativo a múltiplos provedores externos de dados (`TBCA`, `OPEN_FOOD_FACTS`, `USDA`, `MANUAL`) via campos `provider` e `external_id`.
-- Todos os valores nutricionais são obrigatoriamente persistidos calculados na base de **100g ou 100ml**, viabilizando escalonamento proporcional simples e linear no backend.
-
-### 2.3. Ledger Pattern (`point_transactions`)
-
-O saldo do usuário não sofre mutação direta e desprovida de histórico. Toda movimentação de pontos é registrada como um **lançamento contábil imutável**, com `amount` (positivo para crédito, negativo para débito), `reason` e metadados contextuais.
-
-### 2.4. Semiestruturação em JSONB (`users.avatar_config`)
-
-Configurações cosméticas de camadas do avatar utilizam tipo nativo **JSONB**, otimizando operações de leitura e eliminando múltiplos `JOIN`s complexos para renderização do perfil e telas sociais.
-
----
-
-## 3. Dicionário de Dados & Modelagem Completa das Entidades
-
-### 3.1. Domínio de Identidade & Perfil
-
-#### Tabela: `users`
-
-| Campo | Tipo | Descrição |
+| Coluna | Tipo | Regra |
 |---|---|---|
-| `id` | UUID (PK) | Identificador único do usuário |
-| `email` | String (Unique) | E-mail de login |
-| `password_hash` | String | Hash da senha (bcrypt/argon2) |
-| `name` | String | Nome de exibição |
-| `role` | Enum `Role`: `USER`, `ADMIN` | Nível de permissão |
-| `points_balance` | Int (Default 0) | Saldo consolidado de pontos |
-| `avatar_config` | JSONB (Default `{}`) | Configuração visual do avatar |
-| `created_at` / `updated_at` | Timestamp | Controle temporal |
+| `id` | UUID | PK |
+| `email` | VARCHAR(255) | Obrigatório, único, lowercase e formato de e-mail |
+| `password_hash` | VARCHAR(255) | Obrigatório e não vazio; nunca armazena senha ou confirmação em texto claro |
+| `username` | VARCHAR(50) | Obrigatório, único, lowercase; 3–50 caracteres `[a-z0-9_]` |
+| `display_name` | VARCHAR(100) | Obrigatório e não vazio |
+| `created_at`, `updated_at` | TIMESTAMPTZ | Auditoria |
 
-#### Tabela: `profiles`
+E-mail e username devem ser normalizados antes da persistência. A constraint do banco impede que outro cliente grave uma forma não canônica.
 
-| Campo | Tipo | Descrição |
+### `user_profiles`
+
+Relação opcional 1:1 com `users`, usando `user_id` como PK e FK. A ausência do registro significa onboarding ainda não concluído. Quando o registro é criado, todos os dados metabólicos obrigatórios devem estar presentes.
+
+| Coluna | Tipo | Regra |
 |---|---|---|
-| `id` | UUID (PK) | Identificador único do perfil |
-| `user_id` | UUID (FK `users.id`, Unique) | Vínculo 1:1 com usuário |
-| `height_cm` | Decimal | Altura em centímetros |
-| `weight_kg` | Decimal | Peso corporal atual em quilogramas |
-| `birth_date` | Date | Data de nascimento |
-| `gender` | Enum `Gender`: `MALE`, `FEMALE`, `OTHER` | Sexo biológico para cálculo de TMB |
-| `activity_level` | Enum `ActivityLevel`: `SEDENTARY`, `LIGHT`, `MODERATE`, `VERY_ACTIVE` | Fator de atividade |
-| `daily_calories` | Int | Meta calórica diária calculada |
-| `daily_protein` | Decimal | Meta diária de proteína em gramas |
-| `daily_carbs` | Decimal | Meta diária de carboidratos em gramas |
-| `daily_fat` | Decimal | Meta diária de gorduras em gramas |
-| `daily_water_ml` | Int | Meta diária de hidratação em mililitros |
-| `created_at` / `updated_at` | Timestamp | Controle temporal |
+| `user_id` | UUID | PK/FK → `users.id` |
+| `birth_date` | DATE | Obrigatório, não pode estar no futuro |
+| `biological_sex` | `BiologicalSex` | Obrigatório |
+| `height_cm` | DECIMAL(5,2) | Obrigatório e positivo |
+| `current_weight_kg` | DECIMAL(5,2) | Obrigatório e positivo |
+| `target_weight_kg` | DECIMAL(5,2) | Opcional e positivo quando informado |
+| `target_date` | DATE | Opcional e posterior ao nascimento |
+| `dietary_restrictions_note` | TEXT | Opcional; texto livre não vazio quando informado |
+| `goal` | `UserGoal` | Obrigatório, sem default |
+| `activity_level` | `ActivityLevel` | Obrigatório |
+| `avatar_config` | JSONB | Objeto JSON, default `{}` |
+| `created_at`, `updated_at` | TIMESTAMPTZ | Auditoria |
 
-#### Tabela: `user_refresh_tokens`
+### `body_measurements`
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador da sessão |
-| `user_id` | UUID (FK `users.id`) | Usuário dono do token |
-| `token_hash` | String (Unique) | Hash do refresh token emitido |
-| `expires_at` | Timestamp | Data de expiração da sessão |
-| `created_at` | Timestamp | Criação do token |
+Histórico 1:N de peso. Contém `id`, `user_id`, `weight_kg > 0` e `measured_at`. O índice `(user_id, measured_at DESC)` atende à consulta da medição mais recente.
 
----
+### `user_stats`
 
-### 3.2. Domínio de Nutrição & Diário Alimentar
+Agregado 1:1 para ranking: `current_streak`, `best_streak`, `total_points`, `last_activity_at`, `created_at` e `updated_at`. Streaks e pontos são não negativos e `best_streak >= current_streak`.
 
-#### Tabela: `foods`
+## Nutrição e diário alimentar
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador único do alimento |
-| `name` | String | Nome do alimento |
-| `provider` | Enum `Provider`: `TBCA`, `OPEN_FOOD_FACTS`, `USDA`, `MANUAL` | Provedor da informação nutricional |
-| `external_id` | String (Opcional) | Código de barras ou identificador na base externa |
-| `serving_size_g` | Decimal (Default 100) | Base de cálculo padronizada |
-| `calories` | Decimal | Calorias por 100g |
-| `protein` | Decimal | Proteínas por 100g |
-| `carbs` | Decimal | Carboidratos por 100g |
-| `fat` | Decimal | Gorduras por 100g |
-| `fiber` | Decimal (Opcional) | Fibras por 100g |
-| `sodium_mg` | Decimal (Opcional) | Sódio em mg por 100g |
-| `created_at` / `updated_at` | Timestamp | Controle temporal |
+### `foods`
 
-#### Tabela: `meal_logs`
+Catálogo normalizado por 100 g:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador do registro de refeição |
-| `user_id` | UUID (FK `users.id`) | Usuário associado |
-| `meal_type` | Enum `MealType`: `BREAKFAST`, `LUNCH`, `DINNER`, `SNACK` | Tipo da refeição |
-| `logged_at` | Timestamp | Data e horário da refeição |
-| `created_at` / `updated_at` | Timestamp | Controle temporal |
+- identificação: `id`, `name`, `source`, `external_id`, `barcode`;
+- nutrientes `DECIMAL(6,2)`: `calories_per_100g`, `protein_per_100g`, `carbs_per_100g`, `fat_per_100g`, `fiber_per_100g`;
+- `serving_size_g DECIMAL(6,2)` com default 100;
+- `created_at` e `updated_at`.
 
-#### Tabela: `meal_log_items`
+Nutrientes não podem ser negativos e a porção deve ser positiva. `barcode` é único. `(source, external_id)` também é único quando `external_id` está preenchido. `name` é indexado para busca.
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador do item consumido |
-| `meal_log_id` | UUID (FK `meal_logs.id`) | Refeição à qual pertence |
-| `food_id` | UUID (FK `foods.id`, Opcional) | Alimento de origem do catálogo |
-| `quantity_g` | Decimal | Quantidade consumida em gramas/ml |
-| `calories` | Decimal | Snapshot de calorias proporcionais consumidas |
-| `protein` | Decimal | Snapshot de proteínas proporcionais consumidas |
-| `carbs` | Decimal | Snapshot de carboidratos proporcionais consumidos |
-| `fat` | Decimal | Snapshot de gorduras proporcionais consumidas |
+### `diet_plans`
 
----
+Plano pertencente a um usuário: `id`, `user_id`, `title`, `status`, metas de calorias/proteína/carboidrato/gordura/fibra, `start_date`, `end_date`, `created_at` e `updated_at`.
 
-### 3.3. Domínio Social & Comunidade
+- `target_calories > 0`; demais metas são não negativas.
+- Quando as duas datas existem, `end_date >= start_date`.
+- Índice `(user_id, status)`.
 
-#### Tabela: `posts`
+### `planned_meals`
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador da publicação |
-| `user_id` | UUID (FK `users.id`) | Autor da postagem |
-| `meal_log_id` | UUID (FK `meal_logs.id`, Opcional) | Vínculo com registro de refeição compartilhado |
-| `content` | Text | Conteúdo textual |
-| `image_url` | String (Opcional) | URL da foto armazenada |
-| `created_at` / `updated_at` | Timestamp | Controle temporal |
+Refeições ordenadas dentro do plano: `id`, `diet_plan_id`, `name`, `order_index`, metas nutricionais opcionais, `created_at` e `updated_at`.
 
-#### Tabela: `post_reactions`
+- `order_index > 0` e é único dentro do plano.
+- Metas opcionais são não negativas quando preenchidas.
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador da reação |
-| `post_id` | UUID (FK `posts.id`) | Postagem que recebeu a reação |
-| `user_id` | UUID (FK `users.id`) | Usuário que reagiu |
-| `type` | Enum `ReactionType`: `LIKE`, `FIRE`, `CLAP` | Tipo de reação |
-| `created_at` | Timestamp | Data da interação |
+### `planned_meal_items`
 
-#### Tabela: `groups`
+Itens planejados com snapshot nutricional: `id`, `planned_meal_id`, `food_id` opcional, `amount_grams`, `calories DECIMAL(8,2)`, proteína, carboidrato, gordura, fibra, `created_at` e `updated_at`.
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador do grupo |
-| `name` | String | Nome da guilda/comunidade |
-| `description` | Text (Opcional) | Descrição e regras |
-| `creator_id` | UUID (FK `users.id`) | Usuário criador do grupo |
-| `created_at` / `updated_at` | Timestamp | Controle temporal |
+Quantidade deve ser positiva; nutrientes não podem ser negativos. Se o alimento for removido, `food_id` vira `NULL` e o snapshot permanece.
 
-#### Tabela: `group_members`
+### `meal_logs`
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador do vínculo |
-| `group_id` | UUID (FK `groups.id`) | Grupo associado |
-| `user_id` | UUID (FK `users.id`) | Membro participante |
-| `role` | Enum `GroupRole`: `ADMIN`, `MEMBER` | Papel do membro no grupo |
-| `joined_at` | Timestamp | Data de entrada |
+Registro consumido: `id`, `user_id`, `planned_meal_id` opcional, `name`, `photo_url`, `consumed_at`, `created_at` e `updated_at`.
 
----
+Possui índices `(user_id, consumed_at)` e `planned_meal_id`. A remoção da refeição planejada apenas limpa o vínculo.
 
-### 3.4. Domínio de Gamificação & Loja
+### `meal_log_items`
 
-#### Tabela: `achievements`
+Snapshot imutável do consumo: `id`, `meal_log_id`, `food_id` opcional, `amount_grams`, `calories DECIMAL(8,2)`, proteína, carboidrato, gordura, fibra e `input_method`.
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador da conquista |
-| `title` | String | Título da conquista |
-| `description` | Text | Regra e critério de desbloqueio |
-| `icon_url` | String | Ícone de exibição |
-| `points_reward` | Int | Quantidade de pontos concedidos |
+Quantidade deve ser positiva e nutrientes não negativos. Alterações futuras em `foods` não reescrevem o histórico.
 
-#### Tabela: `user_achievements`
+## Grupos e social
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador do desbloqueio |
-| `user_id` | UUID (FK `users.id`) | Usuário premiado |
-| `achievement_id` | UUID (FK `achievements.id`) | Conquista obtida |
-| `unlocked_at` | Timestamp | Momento do desbloqueio |
+### `groups`
 
-#### Tabela: `quests`
+Contém `id`, `creator_id`, `name`, `description`, `invite_code`, `created_at` e `updated_at`.
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador da missão |
-| `title` | String | Título da missão |
-| `description` | Text | Descrição do objetivo |
-| `quest_type` | Enum `QuestType`: `DAILY`, `WEEKLY` | Periodicidade da missão |
-| `target_count` | Int | Quantidade alvo de execuções para conclusão |
-| `points_reward` | Int | Recompensa em pontos |
+- `creator_id` referencia `users` com `RESTRICT`: a propriedade deve ser transferida antes de excluir o usuário.
+- O código de convite é único e possui oito caracteres alfanuméricos maiúsculos.
+- A criação do grupo e do vínculo `GroupMember(ADMIN)` do criador deve ocorrer na mesma transação da aplicação.
 
-#### Tabela: `user_quests`
+### `group_members`
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador do progresso individual |
-| `user_id` | UUID (FK `users.id`) | Usuário em progresso |
-| `quest_id` | UUID (FK `quests.id`) | Missão associada |
-| `current_count` | Int (Default 0) | Progresso atual acumulado |
-| `is_completed` | Boolean (Default `false`) | Flag de atingimento da meta |
-| `is_claimed` | Boolean (Default `false`) | Flag de resgate da recompensa |
-| `expires_at` | Timestamp | Limite temporal para conclusão |
+Tabela N:N com PK `(group_id, user_id)`, `role` e `joined_at`. Excluir usuário ou grupo remove o vínculo. `user_id` possui índice reverso.
 
-#### Tabela: `avatar_items`
+### `group_challenges`
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador do item cosmético |
-| `name` | String | Nome do item |
-| `category` | Enum `ItemCategory`: `HAT`, `SHIRT`, `PANTS`, `ACCESSORY`, `BACKGROUND` | Categoria cosmética |
-| `price_points` | Int | Custo em pontos na loja |
-| `asset_url` | String | URL do arquivo de renderização 2D/3D |
-| `is_active` | Boolean (Default `true`) | Disponibilidade para compra |
+Contém `id`, `group_id`, título, descrição, intervalo, status e auditoria. `end_at > start_at`. Índice `(group_id, status, start_at)`.
 
-#### Tabela: `user_avatar_items`
+### `feed_posts`
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador da posse |
-| `user_id` | UUID (FK `users.id`) | Usuário proprietário |
-| `avatar_item_id` | UUID (FK `avatar_items.id`) | Item adquirido |
-| `is_equipped` | Boolean (Default `false`) | Estado de equipamento no avatar |
-| `acquired_at` | Timestamp | Data da compra/desbloqueio |
+Post dentro de grupo: `id`, `group_id`, `user_id`, `meal_log_id` opcional, `content`, `created_at` e `updated_at`. Deve conter texto não vazio ou uma refeição vinculada.
 
-#### Tabela: `point_transactions`
+Consultas principais usam `(group_id, created_at DESC)` e `(user_id, created_at DESC)`.
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | UUID (PK) | Identificador da movimentação contábil |
-| `user_id` | UUID (FK `users.id`) | Usuário impactado |
-| `amount` | Int | Valor movimentado (+ para crédito, - para débito) |
-| `reason` | Enum `TransactionReason`: `QUEST_COMPLETED`, `ACHIEVEMENT_UNLOCKED`, `MEAL_LOG_STREAK`, `AVATAR_PURCHASE`, `ADMIN_ADJUSTMENT` | Motivo da operação |
-| `metadata` | JSONB (Default `{}`) | Dados contextuais (ex: IDs de missões ou itens comprados) |
-| `created_at` | Timestamp | Momento do registro |
+### `post_reactions`
 
----
+Contém `id`, `post_id`, `user_id`, `reaction_type` e `created_at`. `(post_id, user_id)` é único, portanto cada usuário mantém no máximo uma reação por post e pode trocar seu tipo.
 
-## 4. Guia Rápido de Execução Local (Quickstart)
+### `chat_messages`
 
-### 4.1. Configuração do `.env`
+Mensagem não vazia com `id`, `group_id`, `user_id`, `message` e `created_at`. Índices por `(group_id, created_at DESC)` e usuário.
 
-Crie o arquivo `.env` na raiz do projeto:
+## Gamificação e loja
 
-```env
-DATABASE_URL="postgresql://postgres:password123@localhost:5433/macromaniacs_db?schema=public"
-JWT_ACCESS_SECRET="secret_token_jwt_temporario"
-PORT=3000
-```
+### `point_transactions`
 
-### 4.2. Subir o PostgreSQL via Docker
+Ledger append-only com `id`, `user_id`, `amount`, `reason`, `metadata JSONB` e `created_at`.
 
-Inicie o container isolado do banco:
+- `amount` deve ser diferente de zero; positivo concede e negativo consome pontos.
+- `metadata` deve ser um objeto JSON e guarda contexto sem fingir uma FK polimórfica.
+- Índice `(user_id, created_at DESC)`.
+
+### `achievements` e `user_achievements`
+
+`achievements` possui `id`, `code` único, título, descrição, ícone e auditoria. `user_achievements` usa PK `(user_id, achievement_id)` e registra `unlocked_at`.
+
+Achievements referenciados não podem ser apagados; o usuário pode ser apagado em cascade.
+
+### `daily_missions` e `user_daily_missions`
+
+`daily_missions` possui `id`, `code` único, título, `target_count > 0`, recompensa não negativa e auditoria.
+
+`user_daily_missions` usa PK `(user_id, mission_id, date)`, contém progresso não negativo e `is_claimed`. `date` deve ser fornecida pela aplicação usando o fuso de negócio, evitando depender do fuso da sessão do PostgreSQL.
+
+Missões já referenciadas não podem ser removidas.
+
+### `cosmetic_items` e `user_cosmetics`
+
+`cosmetic_items` possui `id`, `code` único, nome, descrição, tipo, preço não negativo, URL do asset e auditoria. `user_cosmetics` usa PK `(user_id, cosmetic_item_id)` e registra `acquired_at`.
+
+Itens adquiridos não podem ser removidos do catálogo.
+
+## Política de relacionamentos
+
+- Dados diretamente pertencentes ao usuário usam `ON DELETE CASCADE`.
+- Conteúdo pertencente ao grupo usa `ON DELETE CASCADE`.
+- Referências opcionais a alimentos, refeições planejadas e logs usam `SET NULL` para preservar snapshots/conteúdo.
+- Propriedade de grupo e catálogos com histórico usam `RESTRICT`.
+- FKs usam `ON UPDATE CASCADE`.
+
+As seguintes regras dependem da camada de aplicação:
+
+- autor de post ou mensagem deve ser membro do grupo;
+- `meal_logs.planned_meal_id` deve pertencer ao mesmo usuário;
+- `feed_posts.meal_log_id` deve pertencer ao autor;
+- criador do grupo deve possuir vínculo `ADMIN`;
+- `current_progress` não deve ultrapassar `target_count`.
+
+## Invariantes transacionais
+
+### Peso atual
+
+Ao registrar uma nova medição, o serviço deve executar uma única transação que:
+
+1. cria `body_measurements`;
+2. atualiza `user_profiles.current_weight_kg` com o mesmo valor e instante lógico.
+
+### Pontos
+
+Ao conceder ou consumir pontos, o serviço deve executar uma única transação que:
+
+1. insere `point_transactions`;
+2. atualiza `user_stats.total_points` sem permitir saldo negativo.
+
+### Grupo
+
+A criação deve inserir `groups` e o `group_members` do criador com papel `ADMIN` na mesma transação. Transferência de propriedade deve promover o novo criador antes de atualizar `creator_id`.
+
+## Autenticação e privacidade
+
+O escopo atual armazena somente hash de senha. Confirmação de senha existe apenas no frontend. Não existe estratégia implementada de refresh token; por isso não há tabela de sessões ou tokens.
+
+Caso refresh tokens rotativos sejam adotados, a persistência deve guardar apenas hash, expiração, revogação e identificação de sessão/dispositivo — nunca o token em texto claro.
+
+Nascimento, sexo biológico, medições e restrições alimentares são dados pessoais sensíveis. Devem ter acesso restrito, não aparecer em logs e seguir a política de retenção/eliminação da conta. O banco não armazena dados sem requisito atual.
+
+## Migrations
+
+Histórico atual:
+
+1. `20260828205140_init_schema_and_tables`: criação inicial das 23 tabelas;
+2. `20260828205714_init_schema_and_tables`: migration histórica vazia, preservada por já estar aplicada;
+3. `20260904_align_onboarding_profile`: alinhamento inicial do onboarding, preservada por já estar aplicada;
+4. `20260904_z_definitive_database_alignment`: consolidação de enums, constraints, índices, auditoria e backfills. O sufixo `z` garante ordenação posterior à migration histórica `20260904_align_onboarding_profile`.
+
+Nunca edite uma migration registrada em `_prisma_migrations`. Em desenvolvimento, gere mudanças com `prisma migrate dev --create-only`, revise o SQL e só então aplique. Em deploy, use `prisma migrate deploy` com backup e estratégia de rollback definidos pela infraestrutura.
+
+## Execução local
 
 ```bash
 docker compose up -d
-```
-
-> **Observação:** a porta exposta na máquina host é a `5433` (mapeada para a porta interna `5432` do container).
-
-### 4.3. Executar Migrações do Schema
-
-Aplique as migrações declarativas para criar todas as 16 tabelas e ENUMs no PostgreSQL:
-
-```bash
+npx prisma migrate status
 npx prisma migrate dev
-```
-
-### 4.4. Popular Dados Iniciais (Seed)
-
-Execute a carga automática de conquistas padrão, missões diárias/semanais e catálogo cosmético da loja:
-
-```bash
+npx prisma generate
 npx prisma db seed
 ```
 
-### 4.5. Interface Gráfica de Inspeção (Prisma Studio)
+Banco local: `localhost:5433`, encaminhado ao PostgreSQL `5432` do container.
 
-Inicie o painel web de inspeção do banco de dados:
-
-```bash
-npx prisma studio --port 5557
-```
-
-Abra o navegador no endereço: [http://localhost:5557](http://localhost:5557)
-
----
-
-## 5. Resolução de Problemas Comuns (Troubleshooting)
-
-### 5.1. Conflito de Porta 5432
-
-- **Causa:** o sistema operacional possui uma instância de PostgreSQL rodando localmente fora do Docker.
-- **Solução:** o arquivo `docker-compose.yml` e o `.env` foram configurados propositalmente na porta externa `5433`. Mantenha a porta `5433` na sua string de conexão `DATABASE_URL`.
-
-### 5.2. Erro de Autenticação ou Conexão Recusada (P1000 / P1012)
-
-- **Causa:** arquivo `.env` inexistente na raiz ou variáveis com sintaxe incorreta.
-- **Solução:** verifique se o arquivo `.env` existe na raiz do repositório e se a variável `DATABASE_URL` não contém espaços ou caracteres de shell (`echo`).
-
-### 5.3. Conflito de Nome de Container Docker
-
-- **Causa:** o container `macromaniacs_postgres` já foi criado por outra pasta ou sessão anterior.
-- **Solução:** remova o container órfão executando:
+Validações mínimas para alterações futuras:
 
 ```bash
-docker rm -f macromaniacs_postgres
-docker compose up -d
+npx prisma format
+npx prisma validate
+npx prisma generate
+npx prisma migrate status
 ```
 
-### 5.4. Erro `Unable to process count query undefined` no Prisma Studio
-
-- **Causa:** cache do navegador (IndexedDB) retendo metadados de schemas anteriores ou concorrência de portas.
-- **Solução:** abra o Prisma Studio em uma janela anônima (`Cmd + Shift + N`) especificando uma porta alternativa via flag `--port 5557`.
-
----
-
-## 6. Arquivos e Artefatos de Banco no Repositório
-
-| Caminho | Descrição |
-|---|---|
-| `prisma/schema.prisma` | Definição declarativa dos modelos, relacionamentos, chaves e índices |
-| `prisma/seed.ts` | Script automatizado de carga de dados iniciais |
-| `prisma/migrations/` | Histórico físico versionado das migrações DDL |
-| `docs/architecture/diagrama.dbml` | Código DBML completo para renderização no dbdiagram.io |
-| `infra/docker/docker-compose.yml` | Manifesto de orquestração do container PostgreSQL 15 |
-| `.env.example` | Molde de variáveis de ambiente para a equipe |
+O seed usa códigos estáveis e `upsert`; executá-lo repetidamente não duplica achievements, missões ou cosméticos.

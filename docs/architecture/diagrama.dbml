@@ -1,232 +1,437 @@
-Enum user_goal { CUTTING BULKING MAINTENANCE RECOMPOSITION }
-Enum food_source { TBCA OPEN_FOOD_FACTS USDA MANUAL }
-Enum meal_input_method { BARCODE PLANNED_MEAL PHOTO MANUAL }
-Enum cosmetic_type { TAG AVATAR FRAME BACKGROUND }
-Enum member_role { ADMIN MEMBER }
+Project MacroManiacs {
+  database_type: 'PostgreSQL'
+  Note: 'Schema definitivo do escopo atual. CHECK constraints detalhadas em database.md e nas migrations SQL.'
+}
+
+Enum UserGoal {
+  WEIGHT_LOSS
+  MUSCLE_GAIN
+  STRENGTH_GAIN
+  MAINTENANCE
+  PERFORMANCE
+  RECOMPOSITION
+}
+
+Enum BiologicalSex {
+  FEMALE
+  MALE
+  NOT_INFORMED
+}
+
+Enum ActivityLevel {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  INTENSE
+  VERY_INTENSE
+}
+
+Enum FoodSource {
+  TBCA
+  OPEN_FOOD_FACTS
+  USDA
+  MANUAL
+}
+
+Enum MealInputMethod {
+  BARCODE
+  PLANNED_MEAL
+  PHOTO
+  MANUAL
+}
+
+Enum CosmeticType {
+  TAG
+  AVATAR
+  FRAME
+  BACKGROUND
+}
+
+Enum MemberRole {
+  ADMIN
+  MEMBER
+}
+
+Enum DietPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+Enum GroupChallengeStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+Enum ReactionType {
+  LIKE
+  FIRE
+  CLAP
+}
+
+Enum PointTransactionReason {
+  DAILY_MISSION_COMPLETED
+  ACHIEVEMENT_UNLOCKED
+  MEAL_LOG_STREAK
+  COSMETIC_PURCHASE
+  ADMIN_ADJUSTMENT
+}
 
 Table users {
-  id uuid [pk]
-  email varchar [unique, not null]
-  password_hash varchar [not null]
-  username varchar [unique, not null]
-  display_name varchar [not null]
-  created_at timestamp
-  updated_at timestamp
+  id uuid [pk, not null]
+  email varchar(255) [unique, not null]
+  password_hash varchar(255) [not null]
+  username varchar(50) [unique, not null]
+  display_name varchar(100) [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Note: 'email e username em lowercase; campos textuais obrigatórios não aceitam valor vazio.'
 }
 
 Table user_profiles {
-  user_id uuid [pk, ref: - users.id]
-  birth_date date
-  gender varchar
-  height_cm decimal
-  current_weight_kg decimal
-  goal user_goal [default: 'MAINTENANCE']
-  activity_level varchar
-  avatar_config jsonb
+  user_id uuid [pk, not null]
+  birth_date date [not null]
+  biological_sex BiologicalSex [not null]
+  height_cm decimal(5,2) [not null]
+  current_weight_kg decimal(5,2) [not null]
+  target_weight_kg decimal(5,2)
+  target_date date
+  dietary_restrictions_note text
+  goal UserGoal [not null]
+  activity_level ActivityLevel [not null]
+  avatar_config jsonb [not null, default: '{}']
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Note: 'O registro é opcional para User, mas representa onboarding concluído e por isso exige todos os campos metabólicos.'
 }
 
 Table body_measurements {
-  id uuid [pk]
-  user_id uuid [ref: > users.id]
-  weight_kg decimal [not null]
-  measured_at timestamp
+  id uuid [pk, not null]
+  user_id uuid [not null]
+  weight_kg decimal(5,2) [not null]
+  measured_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, measured_at) [name: 'body_measurements_user_id_measured_at_idx']
+  }
 }
 
 Table user_stats {
-  user_id uuid [pk, ref: - users.id]
-  current_streak int [default: 0]
-  best_streak int [default: 0]
-  total_points int [default: 0]
-  last_activity_at timestamp
+  user_id uuid [pk, not null]
+  current_streak int [not null, default: 0]
+  best_streak int [not null, default: 0]
+  total_points int [not null, default: 0]
+  last_activity_at timestamptz
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
 }
 
 Table foods {
-  id uuid [pk]
-  name varchar [not null]
-  source food_source [not null]
-  external_id varchar
-  barcode varchar [unique]
-  calories_per_100g decimal [not null]
-  protein_per_100g decimal [not null]
-  carbs_per_100g decimal [not null]
-  fat_per_100g decimal [not null]
-  fiber_per_100g decimal [default: 0]
-  serving_size_g decimal [default: 100]
-  created_at timestamp
-  updated_at timestamp
-  Indexes { name barcode }
+  id uuid [pk, not null]
+  name varchar(255) [not null]
+  source FoodSource [not null]
+  external_id varchar(100)
+  barcode varchar(100) [unique]
+  calories_per_100g decimal(6,2) [not null]
+  protein_per_100g decimal(6,2) [not null]
+  carbs_per_100g decimal(6,2) [not null]
+  fat_per_100g decimal(6,2) [not null]
+  fiber_per_100g decimal(6,2) [not null, default: 0]
+  serving_size_g decimal(6,2) [not null, default: 100]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    name [name: 'foods_name_idx']
+    (source, external_id) [unique, name: 'foods_source_external_id_key']
+  }
 }
 
 Table diet_plans {
-  id uuid [pk]
-  user_id uuid [ref: > users.id]
-  title varchar [not null]
-  status varchar [default: 'ACTIVE']
+  id uuid [pk, not null]
+  user_id uuid [not null]
+  title varchar(100) [not null]
+  status DietPlanStatus [not null, default: 'ACTIVE']
   target_calories int [not null]
-  target_protein decimal [not null]
-  target_carbs decimal [not null]
-  target_fat decimal [not null]
-  target_fiber decimal [default: 0]
+  target_protein decimal(6,2) [not null]
+  target_carbs decimal(6,2) [not null]
+  target_fat decimal(6,2) [not null]
+  target_fiber decimal(6,2) [not null, default: 0]
   start_date date
   end_date date
-  created_at timestamp
-  updated_at timestamp
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, status) [name: 'diet_plans_user_id_status_idx']
+  }
 }
 
 Table planned_meals {
-  id uuid [pk]
-  diet_plan_id uuid [ref: > diet_plans.id]
-  name varchar [not null]
-  order_index int [default: 1]
+  id uuid [pk, not null]
+  diet_plan_id uuid [not null]
+  name varchar(100) [not null]
+  order_index int [not null, default: 1]
   target_calories int
-  target_protein decimal
-  target_carbs decimal
-  target_fat decimal
+  target_protein decimal(6,2)
+  target_carbs decimal(6,2)
+  target_fat decimal(6,2)
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (diet_plan_id, order_index) [unique, name: 'planned_meals_diet_plan_id_order_index_key']
+  }
 }
 
 Table planned_meal_items {
-  id uuid [pk]
-  planned_meal_id uuid [ref: > planned_meals.id]
-  food_id uuid [ref: > foods.id]
-  amount_grams decimal [not null]
-  calories int [not null]
-  protein decimal [not null]
-  carbs decimal [not null]
-  fat decimal [not null]
-  fiber decimal [default: 0]
+  id uuid [pk, not null]
+  planned_meal_id uuid [not null]
+  food_id uuid
+  amount_grams decimal(6,2) [not null]
+  calories decimal(8,2) [not null]
+  protein decimal(6,2) [not null]
+  carbs decimal(6,2) [not null]
+  fat decimal(6,2) [not null]
+  fiber decimal(6,2) [not null, default: 0]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    planned_meal_id [name: 'planned_meal_items_planned_meal_id_idx']
+    food_id [name: 'planned_meal_items_food_id_idx']
+  }
 }
 
 Table meal_logs {
-  id uuid [pk]
-  user_id uuid [ref: > users.id]
-  planned_meal_id uuid [ref: > planned_meals.id]
-  name varchar [not null]
-  photo_url varchar
-  consumed_at timestamp [not null]
-  created_at timestamp
-  updated_at timestamp
+  id uuid [pk, not null]
+  user_id uuid [not null]
+  planned_meal_id uuid
+  name varchar(100) [not null]
+  photo_url varchar(500)
+  consumed_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, consumed_at) [name: 'meal_logs_user_id_consumed_at_idx']
+    planned_meal_id [name: 'meal_logs_planned_meal_id_idx']
+  }
 }
 
 Table meal_log_items {
-  id uuid [pk]
-  meal_log_id uuid [ref: > meal_logs.id]
-  food_id uuid [ref: > foods.id]
-  amount_grams decimal [not null]
-  calories int [not null]
-  protein decimal [not null]
-  carbs decimal [not null]
-  fat decimal [not null]
-  fiber decimal [default: 0]
-  input_method meal_input_method [not null]
+  id uuid [pk, not null]
+  meal_log_id uuid [not null]
+  food_id uuid
+  amount_grams decimal(6,2) [not null]
+  calories decimal(8,2) [not null]
+  protein decimal(6,2) [not null]
+  carbs decimal(6,2) [not null]
+  fat decimal(6,2) [not null]
+  fiber decimal(6,2) [not null, default: 0]
+  input_method MealInputMethod [not null]
+
+  indexes {
+    meal_log_id [name: 'meal_log_items_meal_log_id_idx']
+    food_id [name: 'meal_log_items_food_id_idx']
+  }
 }
 
 Table groups {
-  id uuid [pk]
-  name varchar [not null]
+  id uuid [pk, not null]
+  creator_id uuid [not null]
+  name varchar(100) [not null]
   description text
   invite_code varchar(8) [unique, not null]
-  created_at timestamp
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    creator_id [name: 'groups_creator_id_idx']
+  }
 }
 
 Table group_members {
-  group_id uuid [ref: > groups.id]
-  user_id uuid [ref: > users.id]
-  role member_role [default: 'MEMBER']
-  joined_at timestamp
-  Indexes { (group_id, user_id) [pk] }
+  group_id uuid [not null]
+  user_id uuid [not null]
+  role MemberRole [not null, default: 'MEMBER']
+  joined_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (group_id, user_id) [pk, name: 'group_members_pkey']
+    user_id [name: 'group_members_user_id_idx']
+  }
 }
 
 Table group_challenges {
-  id uuid [pk]
-  group_id uuid [ref: > groups.id]
-  title varchar [not null]
+  id uuid [pk, not null]
+  group_id uuid [not null]
+  title varchar(150) [not null]
   description text
-  start_at timestamp [not null]
-  end_at timestamp [not null]
-  status varchar [default: 'ACTIVE']
-  created_at timestamp
+  start_at timestamptz [not null]
+  end_at timestamptz [not null]
+  status GroupChallengeStatus [not null, default: 'SCHEDULED']
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (group_id, status, start_at) [name: 'group_challenges_group_id_status_start_at_idx']
+  }
 }
 
 Table feed_posts {
-  id uuid [pk]
-  group_id uuid [ref: > groups.id]
-  user_id uuid [ref: > users.id]
-  meal_log_id uuid [ref: > meal_logs.id]
+  id uuid [pk, not null]
+  group_id uuid [not null]
+  user_id uuid [not null]
+  meal_log_id uuid
   content text
-  created_at timestamp
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (group_id, created_at) [name: 'feed_posts_group_id_created_at_idx']
+    (user_id, created_at) [name: 'feed_posts_user_id_created_at_idx']
+    meal_log_id [name: 'feed_posts_meal_log_id_idx']
+  }
 }
 
 Table post_reactions {
-  id uuid [pk]
-  post_id uuid [ref: > feed_posts.id]
-  user_id uuid [ref: > users.id]
-  reaction_type varchar [not null]
-  created_at timestamp
-  Indexes { (post_id, user_id) [unique] }
+  id uuid [pk, not null]
+  post_id uuid [not null]
+  user_id uuid [not null]
+  reaction_type ReactionType [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (post_id, user_id) [unique, name: 'post_reactions_post_id_user_id_key']
+    user_id [name: 'post_reactions_user_id_idx']
+  }
 }
 
 Table chat_messages {
-  id uuid [pk]
-  group_id uuid [ref: > groups.id]
-  user_id uuid [ref: > users.id]
+  id uuid [pk, not null]
+  group_id uuid [not null]
+  user_id uuid [not null]
   message text [not null]
-  created_at timestamp
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (group_id, created_at) [name: 'chat_messages_group_id_created_at_idx']
+    user_id [name: 'chat_messages_user_id_idx']
+  }
 }
 
 Table point_transactions {
-  id uuid [pk]
-  user_id uuid [ref: > users.id]
+  id uuid [pk, not null]
+  user_id uuid [not null]
   amount int [not null]
-  reason varchar [not null]
-  reference_type varchar
-  reference_id uuid
-  created_at timestamp
+  reason PointTransactionReason [not null]
+  metadata jsonb [not null, default: '{}']
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, created_at) [name: 'point_transactions_user_id_created_at_idx']
+  }
 }
 
 Table achievements {
-  id uuid [pk]
-  code varchar [unique, not null]
-  title varchar [not null]
+  id uuid [pk, not null]
+  code varchar(50) [unique, not null]
+  title varchar(100) [not null]
   description text
-  icon_url varchar
+  icon_url varchar(500)
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
 }
 
 Table user_achievements {
-  user_id uuid [ref: > users.id]
-  achievement_id uuid [ref: > achievements.id]
-  unlocked_at timestamp
-  Indexes { (user_id, achievement_id) [pk] }
+  user_id uuid [not null]
+  achievement_id uuid [not null]
+  unlocked_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, achievement_id) [pk, name: 'user_achievements_pkey']
+    achievement_id [name: 'user_achievements_achievement_id_idx']
+  }
 }
 
 Table daily_missions {
-  id uuid [pk]
-  title varchar [not null]
-  target_count int [default: 1]
+  id uuid [pk, not null]
+  code varchar(50) [unique, not null]
+  title varchar(150) [not null]
+  target_count int [not null, default: 1]
   points_reward int [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
 }
 
 Table user_daily_missions {
-  id uuid [pk]
-  user_id uuid [ref: > users.id]
-  mission_id uuid [ref: > daily_missions.id]
-  current_progress int [default: 0]
-  is_claimed boolean [default: false]
+  user_id uuid [not null]
+  mission_id uuid [not null]
+  current_progress int [not null, default: 0]
+  is_claimed boolean [not null, default: false]
   date date [not null]
-  Indexes { (user_id, mission_id, date) [pk] }
+
+  indexes {
+    (user_id, mission_id, date) [pk, name: 'user_daily_missions_pkey']
+    (mission_id, date) [name: 'user_daily_missions_mission_id_date_idx']
+  }
 }
 
 Table cosmetic_items {
-  id uuid [pk]
-  name varchar [not null]
+  id uuid [pk, not null]
+  code varchar(50) [unique, not null]
+  name varchar(100) [not null]
   description text
-  type cosmetic_type [not null]
+  type CosmeticType [not null]
   price int [not null]
-  asset_url varchar [not null]
+  asset_url varchar(500) [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
 }
 
 Table user_cosmetics {
-  user_id uuid [ref: > users.id]
-  cosmetic_item_id uuid [ref: > cosmetic_items.id]
-  acquired_at timestamp
-  Indexes { (user_id, cosmetic_item_id) [pk] }
+  user_id uuid [not null]
+  cosmetic_item_id uuid [not null]
+  acquired_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, cosmetic_item_id) [pk, name: 'user_cosmetics_pkey']
+    cosmetic_item_id [name: 'user_cosmetics_cosmetic_item_id_idx']
+  }
 }
+
+Ref: user_profiles.user_id - users.id [delete: cascade, update: cascade]
+Ref: body_measurements.user_id > users.id [delete: cascade, update: cascade]
+Ref: user_stats.user_id - users.id [delete: cascade, update: cascade]
+Ref: diet_plans.user_id > users.id [delete: cascade, update: cascade]
+Ref: planned_meals.diet_plan_id > diet_plans.id [delete: cascade, update: cascade]
+Ref: planned_meal_items.planned_meal_id > planned_meals.id [delete: cascade, update: cascade]
+Ref: planned_meal_items.food_id > foods.id [delete: set null, update: cascade]
+Ref: meal_logs.user_id > users.id [delete: cascade, update: cascade]
+Ref: meal_logs.planned_meal_id > planned_meals.id [delete: set null, update: cascade]
+Ref: meal_log_items.meal_log_id > meal_logs.id [delete: cascade, update: cascade]
+Ref: meal_log_items.food_id > foods.id [delete: set null, update: cascade]
+Ref: groups.creator_id > users.id [delete: restrict, update: cascade]
+Ref: group_members.group_id > groups.id [delete: cascade, update: cascade]
+Ref: group_members.user_id > users.id [delete: cascade, update: cascade]
+Ref: group_challenges.group_id > groups.id [delete: cascade, update: cascade]
+Ref: feed_posts.group_id > groups.id [delete: cascade, update: cascade]
+Ref: feed_posts.user_id > users.id [delete: cascade, update: cascade]
+Ref: feed_posts.meal_log_id > meal_logs.id [delete: set null, update: cascade]
+Ref: post_reactions.post_id > feed_posts.id [delete: cascade, update: cascade]
+Ref: post_reactions.user_id > users.id [delete: cascade, update: cascade]
+Ref: chat_messages.group_id > groups.id [delete: cascade, update: cascade]
+Ref: chat_messages.user_id > users.id [delete: cascade, update: cascade]
+Ref: point_transactions.user_id > users.id [delete: cascade, update: cascade]
+Ref: user_achievements.user_id > users.id [delete: cascade, update: cascade]
+Ref: user_achievements.achievement_id > achievements.id [delete: restrict, update: cascade]
+Ref: user_daily_missions.user_id > users.id [delete: cascade, update: cascade]
+Ref: user_daily_missions.mission_id > daily_missions.id [delete: restrict, update: cascade]
+Ref: user_cosmetics.user_id > users.id [delete: cascade, update: cascade]
+Ref: user_cosmetics.cosmetic_item_id > cosmetic_items.id [delete: restrict, update: cascade]

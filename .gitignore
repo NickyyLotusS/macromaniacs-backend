@@ -8,6 +8,7 @@ node_modules/
 vendor/
 dist/
 build/
+*.tsbuildinfo
 bin/
 obj/
 target/
@@ -20,6 +21,9 @@ coverage/
 
 # Logs and temporary files
 *.log
+*.tmp
+*.temp
+.cache/
 tmp/
 temp/
 
@@ -28,3 +32,7 @@ temp/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Backups
+backups/
+*.dump
