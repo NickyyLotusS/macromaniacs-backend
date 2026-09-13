@@ -23,3 +23,10 @@ Regras de dependência
 Módulos de negócio não devem importar SDKs externos nem acessar arquivos
 internos de outros módulos. A comunicação deve acontecer por contratos,
 serviços públicos ou eventos.
+
+# Banco de dados local
+
+Suba o PostgreSQL com Docker:
+
+```bash
+docker compose -f infra/docker/compose.yaml up -d

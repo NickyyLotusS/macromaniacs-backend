@@ -22,9 +22,28 @@ export function validate(
     throw new Error('APP_PORT deve ser um número entre 1 e 65535');
   }
 
+  const databaseUrl = config.DATABASE_URL;
+
+  if (typeof databaseUrl !== 'string' || databaseUrl.trim() === '') {
+    throw new Error('DATABASE_URL é obrigatória');
+  }
+
+  let parsedDatabaseUrl: URL;
+
+  try {
+    parsedDatabaseUrl = new URL(databaseUrl);
+  } catch {
+    throw new Error('DATABASE_URL deve ser uma URL PostgreSQL válida');
+  }
+
+  if (!['postgres:', 'postgresql:'].includes(parsedDatabaseUrl.protocol)) {
+    throw new Error('DATABASE_URL deve utilizar o protocolo PostgreSQL');
+  }
+
   return {
     ...config,
     APP_ENV: appEnv,
     APP_PORT: appPort,
+    DATABASE_URL: databaseUrl.trim(),
   };
 }
