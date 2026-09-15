@@ -7,6 +7,7 @@
 node_modules/
 vendor/
 dist/
+*.tsbuildinfo
 build/
 bin/
 obj/
@@ -22,6 +23,12 @@ coverage/
 *.log
 tmp/
 temp/
+*.tmp
+*.temp
+.cache/
+backups/
+*.dump
+*.dump.json
 
 # Editors and operating system
 .idea/

@@ -8,9 +8,5 @@
     "isolatedModules": true,
     "types": ["node", "jest"]
   },
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts",
-    "tests/**/*.ts"
-  ]
+  "include": ["src/**/*.ts", "test/**/*.ts", "tests/**/*.ts"]
 }

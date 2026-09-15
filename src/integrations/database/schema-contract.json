@@ -1,0 +1,3652 @@
+{
+  "tables": [
+    {
+      "name": "achievements",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "body_measurements",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "chat_messages",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "cosmetic_items",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "daily_missions",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "diet_plans",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "feed_posts",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "foods",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "group_challenges",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "group_members",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "groups",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "meal_log_items",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "meal_logs",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "planned_meal_items",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "planned_meals",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "point_transactions",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "post_reactions",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "user_achievements",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "user_cosmetics",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "user_daily_missions",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "user_profiles",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "user_stats",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    },
+    {
+      "name": "users",
+      "kind": "r",
+      "persistence": "p",
+      "row_security": false,
+      "force_row_security": false
+    }
+  ],
+  "columns": [
+    {
+      "table_name": "achievements",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "achievements",
+      "name": "code",
+      "position": 2,
+      "type": "character varying(50)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "achievements",
+      "name": "title",
+      "position": 3,
+      "type": "character varying(100)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "achievements",
+      "name": "description",
+      "position": 4,
+      "type": "text",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "achievements",
+      "name": "icon_url",
+      "position": 5,
+      "type": "character varying(500)",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "achievements",
+      "name": "created_at",
+      "position": 6,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "achievements",
+      "name": "updated_at",
+      "position": 7,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "body_measurements",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "body_measurements",
+      "name": "user_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "body_measurements",
+      "name": "weight_kg",
+      "position": 3,
+      "type": "numeric(5,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "body_measurements",
+      "name": "measured_at",
+      "position": 4,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "group_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "user_id",
+      "position": 3,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "message",
+      "position": 4,
+      "type": "text",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "created_at",
+      "position": 5,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "name",
+      "position": 2,
+      "type": "character varying(100)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "description",
+      "position": 3,
+      "type": "text",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "type",
+      "position": 4,
+      "type": "\"CosmeticType\"",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "price",
+      "position": 5,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "asset_url",
+      "position": 6,
+      "type": "character varying(500)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "code",
+      "position": 7,
+      "type": "character varying(50)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "created_at",
+      "position": 8,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "updated_at",
+      "position": 9,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "title",
+      "position": 2,
+      "type": "character varying(150)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "target_count",
+      "position": 3,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": "1",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "points_reward",
+      "position": 4,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "code",
+      "position": 5,
+      "type": "character varying(50)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "created_at",
+      "position": 6,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "updated_at",
+      "position": 7,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "user_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "title",
+      "position": 3,
+      "type": "character varying(100)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "status",
+      "position": 4,
+      "type": "\"DietPlanStatus\"",
+      "not_null": true,
+      "default_expression": "'ACTIVE'::\"DietPlanStatus\"",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "target_calories",
+      "position": 5,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "target_protein",
+      "position": 6,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "target_carbs",
+      "position": 7,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "target_fat",
+      "position": 8,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "target_fiber",
+      "position": 9,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": "0",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "start_date",
+      "position": 10,
+      "type": "date",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "end_date",
+      "position": 11,
+      "type": "date",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "created_at",
+      "position": 12,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "updated_at",
+      "position": 13,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "group_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "user_id",
+      "position": 3,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "meal_log_id",
+      "position": 4,
+      "type": "uuid",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "content",
+      "position": 5,
+      "type": "text",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "created_at",
+      "position": 6,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "updated_at",
+      "position": 7,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "name",
+      "position": 2,
+      "type": "character varying(255)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "foods",
+      "name": "source",
+      "position": 3,
+      "type": "\"FoodSource\"",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "external_id",
+      "position": 4,
+      "type": "character varying(100)",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "foods",
+      "name": "barcode",
+      "position": 5,
+      "type": "character varying(100)",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "foods",
+      "name": "calories_per_100g",
+      "position": 6,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "protein_per_100g",
+      "position": 7,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "carbs_per_100g",
+      "position": 8,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "fat_per_100g",
+      "position": 9,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "fiber_per_100g",
+      "position": 10,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": "0",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "serving_size_g",
+      "position": 11,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": "100",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "created_at",
+      "position": 12,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "foods",
+      "name": "updated_at",
+      "position": 13,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "group_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "title",
+      "position": 3,
+      "type": "character varying(150)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "description",
+      "position": 4,
+      "type": "text",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "start_at",
+      "position": 5,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "end_at",
+      "position": 6,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "status",
+      "position": 7,
+      "type": "\"GroupChallengeStatus\"",
+      "not_null": true,
+      "default_expression": "'SCHEDULED'::\"GroupChallengeStatus\"",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "created_at",
+      "position": 8,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "updated_at",
+      "position": 9,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_members",
+      "name": "group_id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_members",
+      "name": "user_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_members",
+      "name": "role",
+      "position": 3,
+      "type": "\"MemberRole\"",
+      "not_null": true,
+      "default_expression": "'MEMBER'::\"MemberRole\"",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "group_members",
+      "name": "joined_at",
+      "position": 4,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "groups",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "groups",
+      "name": "name",
+      "position": 2,
+      "type": "character varying(100)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "groups",
+      "name": "description",
+      "position": 3,
+      "type": "text",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "groups",
+      "name": "invite_code",
+      "position": 4,
+      "type": "character varying(8)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "groups",
+      "name": "created_at",
+      "position": 5,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "groups",
+      "name": "creator_id",
+      "position": 6,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "groups",
+      "name": "updated_at",
+      "position": 7,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "meal_log_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "food_id",
+      "position": 3,
+      "type": "uuid",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "amount_grams",
+      "position": 4,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "calories",
+      "position": 5,
+      "type": "numeric(8,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "protein",
+      "position": 6,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "carbs",
+      "position": 7,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "fat",
+      "position": 8,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "fiber",
+      "position": 9,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": "0",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "input_method",
+      "position": 10,
+      "type": "\"MealInputMethod\"",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "user_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "planned_meal_id",
+      "position": 3,
+      "type": "uuid",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "name",
+      "position": 4,
+      "type": "character varying(100)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "photo_url",
+      "position": 5,
+      "type": "character varying(500)",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "consumed_at",
+      "position": 6,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "created_at",
+      "position": 7,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "updated_at",
+      "position": 8,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "planned_meal_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "food_id",
+      "position": 3,
+      "type": "uuid",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "amount_grams",
+      "position": 4,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "calories",
+      "position": 5,
+      "type": "numeric(8,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "protein",
+      "position": 6,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "carbs",
+      "position": 7,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "fat",
+      "position": 8,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "fiber",
+      "position": 9,
+      "type": "numeric(6,2)",
+      "not_null": true,
+      "default_expression": "0",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "created_at",
+      "position": 10,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "updated_at",
+      "position": 11,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "diet_plan_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "name",
+      "position": 3,
+      "type": "character varying(100)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "order_index",
+      "position": 4,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": "1",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "target_calories",
+      "position": 5,
+      "type": "integer",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "target_protein",
+      "position": 6,
+      "type": "numeric(6,2)",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "target_carbs",
+      "position": 7,
+      "type": "numeric(6,2)",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "target_fat",
+      "position": 8,
+      "type": "numeric(6,2)",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "created_at",
+      "position": 9,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "updated_at",
+      "position": 10,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "user_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "amount",
+      "position": 3,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "reason",
+      "position": 4,
+      "type": "\"PointTransactionReason\"",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "created_at",
+      "position": 5,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "metadata",
+      "position": 6,
+      "type": "jsonb",
+      "not_null": true,
+      "default_expression": "'{}'::jsonb",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "post_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "user_id",
+      "position": 3,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "reaction_type",
+      "position": 4,
+      "type": "\"ReactionType\"",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "created_at",
+      "position": 5,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_achievements",
+      "name": "user_id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_achievements",
+      "name": "achievement_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_achievements",
+      "name": "unlocked_at",
+      "position": 3,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_cosmetics",
+      "name": "user_id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_cosmetics",
+      "name": "cosmetic_item_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_cosmetics",
+      "name": "acquired_at",
+      "position": 3,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "user_id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "mission_id",
+      "position": 2,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "current_progress",
+      "position": 3,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": "0",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "is_claimed",
+      "position": 4,
+      "type": "boolean",
+      "not_null": true,
+      "default_expression": "false",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "date",
+      "position": 5,
+      "type": "date",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "birth_date",
+      "position": 2,
+      "type": "date",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "height_cm",
+      "position": 3,
+      "type": "numeric(5,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "current_weight_kg",
+      "position": 4,
+      "type": "numeric(5,2)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "goal",
+      "position": 5,
+      "type": "\"UserGoal\"",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "avatar_config",
+      "position": 6,
+      "type": "jsonb",
+      "not_null": true,
+      "default_expression": "'{}'::jsonb",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "biological_sex",
+      "position": 7,
+      "type": "\"BiologicalSex\"",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "activity_level",
+      "position": 8,
+      "type": "\"ActivityLevel\"",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "target_weight_kg",
+      "position": 9,
+      "type": "numeric(5,2)",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "target_date",
+      "position": 10,
+      "type": "date",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "dietary_restrictions_note",
+      "position": 11,
+      "type": "text",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "created_at",
+      "position": 12,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "updated_at",
+      "position": 13,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_stats",
+      "name": "user_id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_stats",
+      "name": "current_streak",
+      "position": 2,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": "0",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_stats",
+      "name": "best_streak",
+      "position": 3,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": "0",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_stats",
+      "name": "total_points",
+      "position": 4,
+      "type": "integer",
+      "not_null": true,
+      "default_expression": "0",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_stats",
+      "name": "last_activity_at",
+      "position": 5,
+      "type": "timestamp with time zone",
+      "not_null": false,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_stats",
+      "name": "created_at",
+      "position": 6,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "user_stats",
+      "name": "updated_at",
+      "position": 7,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "users",
+      "name": "id",
+      "position": 1,
+      "type": "uuid",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "users",
+      "name": "email",
+      "position": 2,
+      "type": "character varying(255)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "users",
+      "name": "password_hash",
+      "position": 3,
+      "type": "character varying(255)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "users",
+      "name": "username",
+      "position": 4,
+      "type": "character varying(50)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "users",
+      "name": "display_name",
+      "position": 5,
+      "type": "character varying(100)",
+      "not_null": true,
+      "default_expression": null,
+      "identity": "",
+      "generated": "",
+      "collation": "default"
+    },
+    {
+      "table_name": "users",
+      "name": "created_at",
+      "position": 6,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    },
+    {
+      "table_name": "users",
+      "name": "updated_at",
+      "position": 7,
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_expression": "CURRENT_TIMESTAMP",
+      "identity": "",
+      "generated": "",
+      "collation": null
+    }
+  ],
+  "enums": [
+    {
+      "name": "ActivityLevel",
+      "values": ["SEDENTARY", "LIGHT", "MODERATE", "INTENSE", "VERY_INTENSE"]
+    },
+    {
+      "name": "BiologicalSex",
+      "values": ["FEMALE", "MALE", "NOT_INFORMED"]
+    },
+    {
+      "name": "CosmeticType",
+      "values": ["TAG", "AVATAR", "FRAME", "BACKGROUND"]
+    },
+    {
+      "name": "DietPlanStatus",
+      "values": ["DRAFT", "ACTIVE", "COMPLETED", "ARCHIVED"]
+    },
+    {
+      "name": "FoodSource",
+      "values": ["TBCA", "OPEN_FOOD_FACTS", "USDA", "MANUAL"]
+    },
+    {
+      "name": "GroupChallengeStatus",
+      "values": ["SCHEDULED", "ACTIVE", "COMPLETED", "CANCELLED"]
+    },
+    {
+      "name": "MealInputMethod",
+      "values": ["BARCODE", "PLANNED_MEAL", "PHOTO", "MANUAL"]
+    },
+    {
+      "name": "MemberRole",
+      "values": ["ADMIN", "MEMBER"]
+    },
+    {
+      "name": "PointTransactionReason",
+      "values": [
+        "DAILY_MISSION_COMPLETED",
+        "ACHIEVEMENT_UNLOCKED",
+        "MEAL_LOG_STREAK",
+        "COSMETIC_PURCHASE",
+        "ADMIN_ADJUSTMENT"
+      ]
+    },
+    {
+      "name": "ReactionType",
+      "values": ["LIKE", "FIRE", "CLAP"]
+    },
+    {
+      "name": "UserGoal",
+      "values": [
+        "WEIGHT_LOSS",
+        "MUSCLE_GAIN",
+        "MAINTENANCE",
+        "RECOMPOSITION",
+        "STRENGTH_GAIN",
+        "PERFORMANCE"
+      ]
+    }
+  ],
+  "constraints": [
+    {
+      "table_name": "achievements",
+      "name": "achievements_code_check",
+      "type": "c",
+      "definition": "CHECK (((code)::text ~ '^[A-Z0-9_]{2,50}$'::text))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "achievements",
+      "name": "achievements_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "achievements",
+      "name": "achievements_title_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((title)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "body_measurements",
+      "name": "body_measurements_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "body_measurements",
+      "name": "body_measurements_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "body_measurements",
+      "name": "body_measurements_weight_kg_check",
+      "type": "c",
+      "definition": "CHECK ((weight_kg > (0)::numeric))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "chat_messages_group_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (group_id) REFERENCES groups(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "chat_messages_message_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim(message)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "chat_messages_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "chat_messages_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "cosmetic_items_asset_url_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((asset_url)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "cosmetic_items_code_check",
+      "type": "c",
+      "definition": "CHECK (((code)::text ~ '^[A-Z0-9_]{2,50}$'::text))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "cosmetic_items_name_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((name)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "cosmetic_items_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "cosmetic_items_price_check",
+      "type": "c",
+      "definition": "CHECK ((price >= 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "daily_missions_code_check",
+      "type": "c",
+      "definition": "CHECK (((code)::text ~ '^[A-Z0-9_]{2,50}$'::text))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "daily_missions_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "daily_missions_points_reward_check",
+      "type": "c",
+      "definition": "CHECK ((points_reward >= 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "daily_missions_target_count_check",
+      "type": "c",
+      "definition": "CHECK ((target_count > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "daily_missions_title_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((title)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "diet_plans_date_range_check",
+      "type": "c",
+      "definition": "CHECK (((start_date IS NULL) OR (end_date IS NULL) OR (end_date >= start_date)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "diet_plans_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "diet_plans_targets_check",
+      "type": "c",
+      "definition": "CHECK (((target_calories > 0) AND (target_protein >= (0)::numeric) AND (target_carbs >= (0)::numeric) AND (target_fat >= (0)::numeric) AND (target_fiber >= (0)::numeric)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "diet_plans_title_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((title)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "diet_plans_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "feed_posts_content_check",
+      "type": "c",
+      "definition": "CHECK (((meal_log_id IS NOT NULL) OR ((content IS NOT NULL) AND (length(btrim(content)) > 0))))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "feed_posts_group_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (group_id) REFERENCES groups(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "feed_posts_meal_log_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (meal_log_id) REFERENCES meal_logs(id) ON UPDATE CASCADE ON DELETE SET NULL",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "feed_posts_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "feed_posts_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_barcode_check",
+      "type": "c",
+      "definition": "CHECK (((barcode IS NULL) OR (length(btrim((barcode)::text)) > 0)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_external_id_check",
+      "type": "c",
+      "definition": "CHECK (((external_id IS NULL) OR (length(btrim((external_id)::text)) > 0)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_name_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((name)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_nutrients_check",
+      "type": "c",
+      "definition": "CHECK (((calories_per_100g >= (0)::numeric) AND (protein_per_100g >= (0)::numeric) AND (carbs_per_100g >= (0)::numeric) AND (fat_per_100g >= (0)::numeric) AND (fiber_per_100g >= (0)::numeric)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_serving_size_g_check",
+      "type": "c",
+      "definition": "CHECK ((serving_size_g > (0)::numeric))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "group_challenges_date_range_check",
+      "type": "c",
+      "definition": "CHECK ((end_at > start_at))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "group_challenges_group_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (group_id) REFERENCES groups(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "group_challenges_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "group_challenges_title_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((title)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "group_members",
+      "name": "group_members_group_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (group_id) REFERENCES groups(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "group_members",
+      "name": "group_members_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (group_id, user_id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "group_members",
+      "name": "group_members_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "groups",
+      "name": "groups_creator_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (creator_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE RESTRICT",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "groups",
+      "name": "groups_invite_code_check",
+      "type": "c",
+      "definition": "CHECK (((invite_code)::text ~ '^[A-Z0-9]{8}$'::text))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "groups",
+      "name": "groups_name_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((name)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "groups",
+      "name": "groups_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "meal_log_items_amount_check",
+      "type": "c",
+      "definition": "CHECK ((amount_grams > (0)::numeric))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "meal_log_items_food_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (food_id) REFERENCES foods(id) ON UPDATE CASCADE ON DELETE SET NULL",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "meal_log_items_meal_log_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (meal_log_id) REFERENCES meal_logs(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "meal_log_items_nutrients_check",
+      "type": "c",
+      "definition": "CHECK (((calories >= (0)::numeric) AND (protein >= (0)::numeric) AND (carbs >= (0)::numeric) AND (fat >= (0)::numeric) AND (fiber >= (0)::numeric)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "meal_log_items_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "meal_logs_name_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((name)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "meal_logs_photo_url_check",
+      "type": "c",
+      "definition": "CHECK (((photo_url IS NULL) OR (length(btrim((photo_url)::text)) > 0)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "meal_logs_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "meal_logs_planned_meal_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (planned_meal_id) REFERENCES planned_meals(id) ON UPDATE CASCADE ON DELETE SET NULL",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "meal_logs_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "planned_meal_items_amount_check",
+      "type": "c",
+      "definition": "CHECK ((amount_grams > (0)::numeric))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "planned_meal_items_food_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (food_id) REFERENCES foods(id) ON UPDATE CASCADE ON DELETE SET NULL",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "planned_meal_items_nutrients_check",
+      "type": "c",
+      "definition": "CHECK (((calories >= (0)::numeric) AND (protein >= (0)::numeric) AND (carbs >= (0)::numeric) AND (fat >= (0)::numeric) AND (fiber >= (0)::numeric)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "planned_meal_items_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "planned_meal_items_planned_meal_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (planned_meal_id) REFERENCES planned_meals(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "planned_meals_diet_plan_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (diet_plan_id) REFERENCES diet_plans(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "planned_meals_name_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((name)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "planned_meals_order_index_check",
+      "type": "c",
+      "definition": "CHECK ((order_index > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "planned_meals_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "planned_meals_targets_check",
+      "type": "c",
+      "definition": "CHECK ((((target_calories IS NULL) OR (target_calories >= 0)) AND ((target_protein IS NULL) OR (target_protein >= (0)::numeric)) AND ((target_carbs IS NULL) OR (target_carbs >= (0)::numeric)) AND ((target_fat IS NULL) OR (target_fat >= (0)::numeric))))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "point_transactions_amount_check",
+      "type": "c",
+      "definition": "CHECK ((amount <> 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "point_transactions_metadata_check",
+      "type": "c",
+      "definition": "CHECK ((jsonb_typeof(metadata) = 'object'::text))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "point_transactions_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "point_transactions_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "post_reactions_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "post_reactions_post_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (post_id) REFERENCES feed_posts(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "post_reactions_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_achievements",
+      "name": "user_achievements_achievement_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON UPDATE CASCADE ON DELETE RESTRICT",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_achievements",
+      "name": "user_achievements_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (user_id, achievement_id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_achievements",
+      "name": "user_achievements_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_cosmetics",
+      "name": "user_cosmetics_cosmetic_item_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (cosmetic_item_id) REFERENCES cosmetic_items(id) ON UPDATE CASCADE ON DELETE RESTRICT",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_cosmetics",
+      "name": "user_cosmetics_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (user_id, cosmetic_item_id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_cosmetics",
+      "name": "user_cosmetics_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "user_daily_missions_mission_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (mission_id) REFERENCES daily_missions(id) ON UPDATE CASCADE ON DELETE RESTRICT",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "user_daily_missions_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (user_id, mission_id, date)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "user_daily_missions_progress_check",
+      "type": "c",
+      "definition": "CHECK ((current_progress >= 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "user_daily_missions_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_avatar_config_check",
+      "type": "c",
+      "definition": "CHECK ((jsonb_typeof(avatar_config) = 'object'::text))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_birth_date_check",
+      "type": "c",
+      "definition": "CHECK ((birth_date <= CURRENT_DATE))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_current_weight_kg_check",
+      "type": "c",
+      "definition": "CHECK (((current_weight_kg IS NULL) OR (current_weight_kg > (0)::numeric)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_dietary_note_check",
+      "type": "c",
+      "definition": "CHECK (((dietary_restrictions_note IS NULL) OR (length(btrim(dietary_restrictions_note)) > 0)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_height_cm_check",
+      "type": "c",
+      "definition": "CHECK (((height_cm IS NULL) OR (height_cm > (0)::numeric)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (user_id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_target_date_check",
+      "type": "c",
+      "definition": "CHECK (((target_date IS NULL) OR (target_date > birth_date)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_target_weight_kg_check",
+      "type": "c",
+      "definition": "CHECK (((target_weight_kg IS NULL) OR (target_weight_kg > (0)::numeric)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_stats",
+      "name": "user_stats_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (user_id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "user_stats",
+      "name": "user_stats_streaks_check",
+      "type": "c",
+      "definition": "CHECK (((current_streak >= 0) AND (best_streak >= current_streak)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_stats",
+      "name": "user_stats_total_points_check",
+      "type": "c",
+      "definition": "CHECK ((total_points >= 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "user_stats",
+      "name": "user_stats_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "users",
+      "name": "users_display_name_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((display_name)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "users",
+      "name": "users_email_format_check",
+      "type": "c",
+      "definition": "CHECK ((((email)::text = lower(btrim((email)::text))) AND ((email)::text ~ '^[^[:space:]@]+@[^[:space:]@]+[.][^[:space:]@]+$'::text)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "users",
+      "name": "users_password_hash_not_blank_check",
+      "type": "c",
+      "definition": "CHECK ((length(btrim((password_hash)::text)) > 0))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    },
+    {
+      "table_name": "users",
+      "name": "users_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": true
+    },
+    {
+      "table_name": "users",
+      "name": "users_username_format_check",
+      "type": "c",
+      "definition": "CHECK ((((username)::text = lower(btrim((username)::text))) AND ((username)::text ~ '^[a-z0-9_]{3,50}$'::text)))",
+      "validated": true,
+      "deferrable": false,
+      "deferred": false,
+      "no_inherit": false
+    }
+  ],
+  "indices": [
+    {
+      "table_name": "achievements",
+      "name": "achievements_code_key",
+      "definition": "CREATE UNIQUE INDEX achievements_code_key ON public.achievements USING btree (code)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "achievements",
+      "name": "achievements_pkey",
+      "definition": "CREATE UNIQUE INDEX achievements_pkey ON public.achievements USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "body_measurements",
+      "name": "body_measurements_pkey",
+      "definition": "CREATE UNIQUE INDEX body_measurements_pkey ON public.body_measurements USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "body_measurements",
+      "name": "body_measurements_user_id_measured_at_idx",
+      "definition": "CREATE INDEX body_measurements_user_id_measured_at_idx ON public.body_measurements USING btree (user_id, measured_at DESC)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "chat_messages_group_id_created_at_idx",
+      "definition": "CREATE INDEX chat_messages_group_id_created_at_idx ON public.chat_messages USING btree (group_id, created_at DESC)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "chat_messages_pkey",
+      "definition": "CREATE UNIQUE INDEX chat_messages_pkey ON public.chat_messages USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "chat_messages",
+      "name": "chat_messages_user_id_idx",
+      "definition": "CREATE INDEX chat_messages_user_id_idx ON public.chat_messages USING btree (user_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "cosmetic_items_code_key",
+      "definition": "CREATE UNIQUE INDEX cosmetic_items_code_key ON public.cosmetic_items USING btree (code)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "cosmetic_items",
+      "name": "cosmetic_items_pkey",
+      "definition": "CREATE UNIQUE INDEX cosmetic_items_pkey ON public.cosmetic_items USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "daily_missions_code_key",
+      "definition": "CREATE UNIQUE INDEX daily_missions_code_key ON public.daily_missions USING btree (code)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "daily_missions",
+      "name": "daily_missions_pkey",
+      "definition": "CREATE UNIQUE INDEX daily_missions_pkey ON public.daily_missions USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "diet_plans_pkey",
+      "definition": "CREATE UNIQUE INDEX diet_plans_pkey ON public.diet_plans USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "diet_plans",
+      "name": "diet_plans_user_id_status_idx",
+      "definition": "CREATE INDEX diet_plans_user_id_status_idx ON public.diet_plans USING btree (user_id, status)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "feed_posts_group_id_created_at_idx",
+      "definition": "CREATE INDEX feed_posts_group_id_created_at_idx ON public.feed_posts USING btree (group_id, created_at DESC)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "feed_posts_meal_log_id_idx",
+      "definition": "CREATE INDEX feed_posts_meal_log_id_idx ON public.feed_posts USING btree (meal_log_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "feed_posts_pkey",
+      "definition": "CREATE UNIQUE INDEX feed_posts_pkey ON public.feed_posts USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "feed_posts",
+      "name": "feed_posts_user_id_created_at_idx",
+      "definition": "CREATE INDEX feed_posts_user_id_created_at_idx ON public.feed_posts USING btree (user_id, created_at DESC)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_barcode_key",
+      "definition": "CREATE UNIQUE INDEX foods_barcode_key ON public.foods USING btree (barcode)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_name_idx",
+      "definition": "CREATE INDEX foods_name_idx ON public.foods USING btree (name)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_pkey",
+      "definition": "CREATE UNIQUE INDEX foods_pkey ON public.foods USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "foods",
+      "name": "foods_source_external_id_key",
+      "definition": "CREATE UNIQUE INDEX foods_source_external_id_key ON public.foods USING btree (source, external_id)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "group_challenges_group_id_status_start_at_idx",
+      "definition": "CREATE INDEX group_challenges_group_id_status_start_at_idx ON public.group_challenges USING btree (group_id, status, start_at)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "group_challenges",
+      "name": "group_challenges_pkey",
+      "definition": "CREATE UNIQUE INDEX group_challenges_pkey ON public.group_challenges USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "group_members",
+      "name": "group_members_pkey",
+      "definition": "CREATE UNIQUE INDEX group_members_pkey ON public.group_members USING btree (group_id, user_id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "group_members",
+      "name": "group_members_user_id_idx",
+      "definition": "CREATE INDEX group_members_user_id_idx ON public.group_members USING btree (user_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "groups",
+      "name": "groups_creator_id_idx",
+      "definition": "CREATE INDEX groups_creator_id_idx ON public.groups USING btree (creator_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "groups",
+      "name": "groups_invite_code_key",
+      "definition": "CREATE UNIQUE INDEX groups_invite_code_key ON public.groups USING btree (invite_code)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "groups",
+      "name": "groups_pkey",
+      "definition": "CREATE UNIQUE INDEX groups_pkey ON public.groups USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "meal_log_items_food_id_idx",
+      "definition": "CREATE INDEX meal_log_items_food_id_idx ON public.meal_log_items USING btree (food_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "meal_log_items_meal_log_id_idx",
+      "definition": "CREATE INDEX meal_log_items_meal_log_id_idx ON public.meal_log_items USING btree (meal_log_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "meal_log_items",
+      "name": "meal_log_items_pkey",
+      "definition": "CREATE UNIQUE INDEX meal_log_items_pkey ON public.meal_log_items USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "meal_logs_pkey",
+      "definition": "CREATE UNIQUE INDEX meal_logs_pkey ON public.meal_logs USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "meal_logs_planned_meal_id_idx",
+      "definition": "CREATE INDEX meal_logs_planned_meal_id_idx ON public.meal_logs USING btree (planned_meal_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "meal_logs",
+      "name": "meal_logs_user_id_consumed_at_idx",
+      "definition": "CREATE INDEX meal_logs_user_id_consumed_at_idx ON public.meal_logs USING btree (user_id, consumed_at)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "planned_meal_items_food_id_idx",
+      "definition": "CREATE INDEX planned_meal_items_food_id_idx ON public.planned_meal_items USING btree (food_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "planned_meal_items_pkey",
+      "definition": "CREATE UNIQUE INDEX planned_meal_items_pkey ON public.planned_meal_items USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "planned_meal_items",
+      "name": "planned_meal_items_planned_meal_id_idx",
+      "definition": "CREATE INDEX planned_meal_items_planned_meal_id_idx ON public.planned_meal_items USING btree (planned_meal_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "planned_meals_diet_plan_id_order_index_key",
+      "definition": "CREATE UNIQUE INDEX planned_meals_diet_plan_id_order_index_key ON public.planned_meals USING btree (diet_plan_id, order_index)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "planned_meals",
+      "name": "planned_meals_pkey",
+      "definition": "CREATE UNIQUE INDEX planned_meals_pkey ON public.planned_meals USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "point_transactions_pkey",
+      "definition": "CREATE UNIQUE INDEX point_transactions_pkey ON public.point_transactions USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "point_transactions",
+      "name": "point_transactions_user_id_created_at_idx",
+      "definition": "CREATE INDEX point_transactions_user_id_created_at_idx ON public.point_transactions USING btree (user_id, created_at DESC)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "post_reactions_pkey",
+      "definition": "CREATE UNIQUE INDEX post_reactions_pkey ON public.post_reactions USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "post_reactions_post_id_user_id_key",
+      "definition": "CREATE UNIQUE INDEX post_reactions_post_id_user_id_key ON public.post_reactions USING btree (post_id, user_id)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "post_reactions",
+      "name": "post_reactions_user_id_idx",
+      "definition": "CREATE INDEX post_reactions_user_id_idx ON public.post_reactions USING btree (user_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "user_achievements",
+      "name": "user_achievements_achievement_id_idx",
+      "definition": "CREATE INDEX user_achievements_achievement_id_idx ON public.user_achievements USING btree (achievement_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "user_achievements",
+      "name": "user_achievements_pkey",
+      "definition": "CREATE UNIQUE INDEX user_achievements_pkey ON public.user_achievements USING btree (user_id, achievement_id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "user_cosmetics",
+      "name": "user_cosmetics_cosmetic_item_id_idx",
+      "definition": "CREATE INDEX user_cosmetics_cosmetic_item_id_idx ON public.user_cosmetics USING btree (cosmetic_item_id)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "user_cosmetics",
+      "name": "user_cosmetics_pkey",
+      "definition": "CREATE UNIQUE INDEX user_cosmetics_pkey ON public.user_cosmetics USING btree (user_id, cosmetic_item_id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "user_daily_missions_mission_id_date_idx",
+      "definition": "CREATE INDEX user_daily_missions_mission_id_date_idx ON public.user_daily_missions USING btree (mission_id, date)",
+      "is_unique": false,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "user_daily_missions",
+      "name": "user_daily_missions_pkey",
+      "definition": "CREATE UNIQUE INDEX user_daily_missions_pkey ON public.user_daily_missions USING btree (user_id, mission_id, date)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "user_profiles",
+      "name": "user_profiles_pkey",
+      "definition": "CREATE UNIQUE INDEX user_profiles_pkey ON public.user_profiles USING btree (user_id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "user_stats",
+      "name": "user_stats_pkey",
+      "definition": "CREATE UNIQUE INDEX user_stats_pkey ON public.user_stats USING btree (user_id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "users",
+      "name": "users_email_key",
+      "definition": "CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "users",
+      "name": "users_pkey",
+      "definition": "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)",
+      "is_unique": true,
+      "is_primary": true,
+      "valid": true,
+      "ready": true
+    },
+    {
+      "table_name": "users",
+      "name": "users_username_key",
+      "definition": "CREATE UNIQUE INDEX users_username_key ON public.users USING btree (username)",
+      "is_unique": true,
+      "is_primary": false,
+      "valid": true,
+      "ready": true
+    }
+  ],
+  "routines": [],
+  "triggers": [],
+  "views": [],
+  "sequences": []
+}

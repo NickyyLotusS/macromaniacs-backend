@@ -1,0 +1,76 @@
+export enum UserGoal {
+  WEIGHT_LOSS = 'WEIGHT_LOSS',
+  MUSCLE_GAIN = 'MUSCLE_GAIN',
+  MAINTENANCE = 'MAINTENANCE',
+  RECOMPOSITION = 'RECOMPOSITION',
+  STRENGTH_GAIN = 'STRENGTH_GAIN',
+  PERFORMANCE = 'PERFORMANCE',
+}
+
+export enum BiologicalSex {
+  FEMALE = 'FEMALE',
+  MALE = 'MALE',
+  NOT_INFORMED = 'NOT_INFORMED',
+}
+
+export enum ActivityLevel {
+  SEDENTARY = 'SEDENTARY',
+  LIGHT = 'LIGHT',
+  MODERATE = 'MODERATE',
+  INTENSE = 'INTENSE',
+  VERY_INTENSE = 'VERY_INTENSE',
+}
+
+export enum FoodSource {
+  TBCA = 'TBCA',
+  OPEN_FOOD_FACTS = 'OPEN_FOOD_FACTS',
+  USDA = 'USDA',
+  MANUAL = 'MANUAL',
+}
+
+export enum MealInputMethod {
+  BARCODE = 'BARCODE',
+  PLANNED_MEAL = 'PLANNED_MEAL',
+  PHOTO = 'PHOTO',
+  MANUAL = 'MANUAL',
+}
+
+export enum CosmeticType {
+  TAG = 'TAG',
+  AVATAR = 'AVATAR',
+  FRAME = 'FRAME',
+  BACKGROUND = 'BACKGROUND',
+}
+
+export enum MemberRole {
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
+}
+
+export enum DietPlanStatus {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export enum GroupChallengeStatus {
+  SCHEDULED = 'SCHEDULED',
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum ReactionType {
+  LIKE = 'LIKE',
+  FIRE = 'FIRE',
+  CLAP = 'CLAP',
+}
+
+export enum PointTransactionReason {
+  DAILY_MISSION_COMPLETED = 'DAILY_MISSION_COMPLETED',
+  ACHIEVEMENT_UNLOCKED = 'ACHIEVEMENT_UNLOCKED',
+  MEAL_LOG_STREAK = 'MEAL_LOG_STREAK',
+  COSMETIC_PURCHASE = 'COSMETIC_PURCHASE',
+  ADMIN_ADJUSTMENT = 'ADMIN_ADJUSTMENT',
+}
