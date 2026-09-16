@@ -1,11 +1,30 @@
-const environments = [
-  'development',
-  'test',
-  'staging',
-  'production',
-] as const;
+const environments = ['development', 'test', 'staging', 'production'] as const;
 
 type Environment = (typeof environments)[number];
+
+export function validateDatabaseUrl(value: unknown): string {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error('DATABASE_URL é obrigatória');
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(value.trim());
+  } catch {
+    throw new Error('DATABASE_URL deve ser uma URL PostgreSQL válida');
+  }
+  if (
+    !['postgres:', 'postgresql:'].includes(parsed.protocol) ||
+    !parsed.hostname ||
+    !parsed.username ||
+    parsed.pathname === '/' ||
+    !parsed.pathname
+  ) {
+    throw new Error(
+      'DATABASE_URL deve conter protocolo PostgreSQL, host, usuário e banco',
+    );
+  }
+  return value.trim();
+}
 
 export function validate(
   config: Record<string, unknown>,
@@ -22,23 +41,7 @@ export function validate(
     throw new Error('APP_PORT deve ser um número entre 1 e 65535');
   }
 
-  const databaseUrl = config.DATABASE_URL;
-
-  if (typeof databaseUrl !== 'string' || databaseUrl.trim() === '') {
-    throw new Error('DATABASE_URL é obrigatória');
-  }
-
-  let parsedDatabaseUrl: URL;
-
-  try {
-    parsedDatabaseUrl = new URL(databaseUrl);
-  } catch {
-    throw new Error('DATABASE_URL deve ser uma URL PostgreSQL válida');
-  }
-
-  if (!['postgres:', 'postgresql:'].includes(parsedDatabaseUrl.protocol)) {
-    throw new Error('DATABASE_URL deve utilizar o protocolo PostgreSQL');
-  }
+  const databaseUrl = validateDatabaseUrl(config.DATABASE_URL);
 
   return {
     ...config,

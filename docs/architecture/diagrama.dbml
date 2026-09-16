@@ -1,0 +1,588 @@
+Project MacroManiacs {
+  database_type: 'PostgreSQL'
+  Note: 'Arquitetura preservada: 23 tabelas, 11 enums, 55 índices, 29 FKs e 50 CHECKs. ORM oficial TypeORM. Ordem DESC dos índices descrita nas notas; migrations SQL são a referência física.'
+}
+
+Enum ActivityLevel {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  INTENSE
+  VERY_INTENSE
+}
+
+Enum BiologicalSex {
+  FEMALE
+  MALE
+  NOT_INFORMED
+}
+
+Enum CosmeticType {
+  TAG
+  AVATAR
+  FRAME
+  BACKGROUND
+}
+
+Enum DietPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+Enum FoodSource {
+  TBCA
+  OPEN_FOOD_FACTS
+  USDA
+  MANUAL
+}
+
+Enum GroupChallengeStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+Enum MealInputMethod {
+  BARCODE
+  PLANNED_MEAL
+  PHOTO
+  MANUAL
+}
+
+Enum MemberRole {
+  ADMIN
+  MEMBER
+}
+
+Enum PointTransactionReason {
+  DAILY_MISSION_COMPLETED
+  ACHIEVEMENT_UNLOCKED
+  MEAL_LOG_STREAK
+  COSMETIC_PURCHASE
+  ADMIN_ADJUSTMENT
+}
+
+Enum ReactionType {
+  LIKE
+  FIRE
+  CLAP
+}
+
+Enum UserGoal {
+  WEIGHT_LOSS
+  MUSCLE_GAIN
+  MAINTENANCE
+  RECOMPOSITION
+  STRENGTH_GAIN
+  PERFORMANCE
+}
+
+Table users {
+  id uuid [not null]
+  email varchar(255) [not null]
+  password_hash varchar(255) [not null]
+  username varchar(50) [not null]
+  display_name varchar(100) [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    email [name: 'users_email_key', unique, note: 'SQL: email ASC']
+    id [name: 'users_pkey', pk, note: 'SQL: id ASC']
+    username [name: 'users_username_key', unique, note: 'SQL: username ASC']
+  }
+
+  checks {
+    `(length(btrim((display_name)::text)) > 0)` [name: 'users_display_name_not_blank_check']
+    `(((email)::text = lower(btrim((email)::text))) AND ((email)::text ~ '^[^[:space:]@]+@[^[:space:]@]+[.][^[:space:]@]+$'::text))` [name: 'users_email_format_check']
+    `(length(btrim((password_hash)::text)) > 0)` [name: 'users_password_hash_not_blank_check']
+    `(((username)::text = lower(btrim((username)::text))) AND ((username)::text ~ '^[a-z0-9_]{3,50}$'::text))` [name: 'users_username_format_check']
+  }
+
+  Note: "email e username em lowercase; campos textuais obrigatórios não aceitam valor vazio."
+}
+
+Table user_profiles {
+  user_id uuid [not null]
+  birth_date date [not null]
+  height_cm decimal(5,2) [not null]
+  current_weight_kg decimal(5,2) [not null]
+  goal UserGoal [not null]
+  avatar_config jsonb [not null, default: `'{}'::jsonb`]
+  biological_sex BiologicalSex [not null]
+  activity_level ActivityLevel [not null]
+  target_weight_kg decimal(5,2)
+  target_date date
+  dietary_restrictions_note text
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    user_id [name: 'user_profiles_pkey', pk, note: 'SQL: user_id ASC']
+  }
+
+  checks {
+    `(jsonb_typeof(avatar_config) = 'object'::text)` [name: 'user_profiles_avatar_config_check']
+    `(birth_date <= CURRENT_DATE)` [name: 'user_profiles_birth_date_check']
+    `((current_weight_kg IS NULL) OR (current_weight_kg > (0)::numeric))` [name: 'user_profiles_current_weight_kg_check']
+    `((dietary_restrictions_note IS NULL) OR (length(btrim(dietary_restrictions_note)) > 0))` [name: 'user_profiles_dietary_note_check']
+    `((height_cm IS NULL) OR (height_cm > (0)::numeric))` [name: 'user_profiles_height_cm_check']
+    `((target_date IS NULL) OR (target_date > birth_date))` [name: 'user_profiles_target_date_check']
+    `((target_weight_kg IS NULL) OR (target_weight_kg > (0)::numeric))` [name: 'user_profiles_target_weight_kg_check']
+  }
+
+  Note: "O registro é opcional para User, mas representa onboarding concluído e por isso exige todos os campos metabólicos."
+}
+
+Table body_measurements {
+  id uuid [not null]
+  user_id uuid [not null]
+  weight_kg decimal(5,2) [not null]
+  measured_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    id [name: 'body_measurements_pkey', pk, note: 'SQL: id ASC']
+    (user_id, measured_at) [name: 'body_measurements_user_id_measured_at_idx', note: 'SQL: user_id ASC, measured_at DESC']
+  }
+
+  checks {
+    `(weight_kg > (0)::numeric)` [name: 'body_measurements_weight_kg_check']
+  }
+}
+
+Table user_stats {
+  user_id uuid [not null]
+  current_streak int [not null, default: `0`]
+  best_streak int [not null, default: `0`]
+  total_points int [not null, default: `0`]
+  last_activity_at timestamptz
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    user_id [name: 'user_stats_pkey', pk, note: 'SQL: user_id ASC']
+  }
+
+  checks {
+    `((current_streak >= 0) AND (best_streak >= current_streak))` [name: 'user_stats_streaks_check']
+    `(total_points >= 0)` [name: 'user_stats_total_points_check']
+  }
+}
+
+Table foods {
+  id uuid [not null]
+  name varchar(255) [not null]
+  source FoodSource [not null]
+  external_id varchar(100)
+  barcode varchar(100)
+  calories_per_100g decimal(6,2) [not null]
+  protein_per_100g decimal(6,2) [not null]
+  carbs_per_100g decimal(6,2) [not null]
+  fat_per_100g decimal(6,2) [not null]
+  fiber_per_100g decimal(6,2) [not null, default: `0`]
+  serving_size_g decimal(6,2) [not null, default: `100`]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    barcode [name: 'foods_barcode_key', unique, note: 'SQL: barcode ASC']
+    name [name: 'foods_name_idx', note: 'SQL: name ASC']
+    id [name: 'foods_pkey', pk, note: 'SQL: id ASC']
+    (source, external_id) [name: 'foods_source_external_id_key', unique, note: 'SQL: source ASC, external_id ASC']
+  }
+
+  checks {
+    `((barcode IS NULL) OR (length(btrim((barcode)::text)) > 0))` [name: 'foods_barcode_check']
+    `((external_id IS NULL) OR (length(btrim((external_id)::text)) > 0))` [name: 'foods_external_id_check']
+    `(length(btrim((name)::text)) > 0)` [name: 'foods_name_not_blank_check']
+    `((calories_per_100g >= (0)::numeric) AND (protein_per_100g >= (0)::numeric) AND (carbs_per_100g >= (0)::numeric) AND (fat_per_100g >= (0)::numeric) AND (fiber_per_100g >= (0)::numeric))` [name: 'foods_nutrients_check']
+    `(serving_size_g > (0)::numeric)` [name: 'foods_serving_size_g_check']
+  }
+}
+
+Table diet_plans {
+  id uuid [not null]
+  user_id uuid [not null]
+  title varchar(100) [not null]
+  status DietPlanStatus [not null, default: `'ACTIVE'::"DietPlanStatus"`]
+  target_calories int [not null]
+  target_protein decimal(6,2) [not null]
+  target_carbs decimal(6,2) [not null]
+  target_fat decimal(6,2) [not null]
+  target_fiber decimal(6,2) [not null, default: `0`]
+  start_date date
+  end_date date
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    id [name: 'diet_plans_pkey', pk, note: 'SQL: id ASC']
+    (user_id, status) [name: 'diet_plans_user_id_status_idx', note: 'SQL: user_id ASC, status ASC']
+  }
+
+  checks {
+    `((start_date IS NULL) OR (end_date IS NULL) OR (end_date >= start_date))` [name: 'diet_plans_date_range_check']
+    `((target_calories > 0) AND (target_protein >= (0)::numeric) AND (target_carbs >= (0)::numeric) AND (target_fat >= (0)::numeric) AND (target_fiber >= (0)::numeric))` [name: 'diet_plans_targets_check']
+    `(length(btrim((title)::text)) > 0)` [name: 'diet_plans_title_not_blank_check']
+  }
+}
+
+Table planned_meals {
+  id uuid [not null]
+  diet_plan_id uuid [not null]
+  name varchar(100) [not null]
+  order_index int [not null, default: `1`]
+  target_calories int
+  target_protein decimal(6,2)
+  target_carbs decimal(6,2)
+  target_fat decimal(6,2)
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (diet_plan_id, order_index) [name: 'planned_meals_diet_plan_id_order_index_key', unique, note: 'SQL: diet_plan_id ASC, order_index ASC']
+    id [name: 'planned_meals_pkey', pk, note: 'SQL: id ASC']
+  }
+
+  checks {
+    `(length(btrim((name)::text)) > 0)` [name: 'planned_meals_name_not_blank_check']
+    `(order_index > 0)` [name: 'planned_meals_order_index_check']
+    `(((target_calories IS NULL) OR (target_calories >= 0)) AND ((target_protein IS NULL) OR (target_protein >= (0)::numeric)) AND ((target_carbs IS NULL) OR (target_carbs >= (0)::numeric)) AND ((target_fat IS NULL) OR (target_fat >= (0)::numeric)))` [name: 'planned_meals_targets_check']
+  }
+}
+
+Table planned_meal_items {
+  id uuid [not null]
+  planned_meal_id uuid [not null]
+  food_id uuid
+  amount_grams decimal(6,2) [not null]
+  calories decimal(8,2) [not null]
+  protein decimal(6,2) [not null]
+  carbs decimal(6,2) [not null]
+  fat decimal(6,2) [not null]
+  fiber decimal(6,2) [not null, default: `0`]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    food_id [name: 'planned_meal_items_food_id_idx', note: 'SQL: food_id ASC']
+    id [name: 'planned_meal_items_pkey', pk, note: 'SQL: id ASC']
+    planned_meal_id [name: 'planned_meal_items_planned_meal_id_idx', note: 'SQL: planned_meal_id ASC']
+  }
+
+  checks {
+    `(amount_grams > (0)::numeric)` [name: 'planned_meal_items_amount_check']
+    `((calories >= (0)::numeric) AND (protein >= (0)::numeric) AND (carbs >= (0)::numeric) AND (fat >= (0)::numeric) AND (fiber >= (0)::numeric))` [name: 'planned_meal_items_nutrients_check']
+  }
+}
+
+Table meal_logs {
+  id uuid [not null]
+  user_id uuid [not null]
+  planned_meal_id uuid
+  name varchar(100) [not null]
+  photo_url varchar(500)
+  consumed_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    id [name: 'meal_logs_pkey', pk, note: 'SQL: id ASC']
+    planned_meal_id [name: 'meal_logs_planned_meal_id_idx', note: 'SQL: planned_meal_id ASC']
+    (user_id, consumed_at) [name: 'meal_logs_user_id_consumed_at_idx', note: 'SQL: user_id ASC, consumed_at ASC']
+  }
+
+  checks {
+    `(length(btrim((name)::text)) > 0)` [name: 'meal_logs_name_not_blank_check']
+    `((photo_url IS NULL) OR (length(btrim((photo_url)::text)) > 0))` [name: 'meal_logs_photo_url_check']
+  }
+}
+
+Table meal_log_items {
+  id uuid [not null]
+  meal_log_id uuid [not null]
+  food_id uuid
+  amount_grams decimal(6,2) [not null]
+  calories decimal(8,2) [not null]
+  protein decimal(6,2) [not null]
+  carbs decimal(6,2) [not null]
+  fat decimal(6,2) [not null]
+  fiber decimal(6,2) [not null, default: `0`]
+  input_method MealInputMethod [not null]
+
+  indexes {
+    food_id [name: 'meal_log_items_food_id_idx', note: 'SQL: food_id ASC']
+    meal_log_id [name: 'meal_log_items_meal_log_id_idx', note: 'SQL: meal_log_id ASC']
+    id [name: 'meal_log_items_pkey', pk, note: 'SQL: id ASC']
+  }
+
+  checks {
+    `(amount_grams > (0)::numeric)` [name: 'meal_log_items_amount_check']
+    `((calories >= (0)::numeric) AND (protein >= (0)::numeric) AND (carbs >= (0)::numeric) AND (fat >= (0)::numeric) AND (fiber >= (0)::numeric))` [name: 'meal_log_items_nutrients_check']
+  }
+}
+
+Table groups {
+  id uuid [not null]
+  name varchar(100) [not null]
+  description text
+  invite_code varchar(8) [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  creator_id uuid [not null]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    creator_id [name: 'groups_creator_id_idx', note: 'SQL: creator_id ASC']
+    invite_code [name: 'groups_invite_code_key', unique, note: 'SQL: invite_code ASC']
+    id [name: 'groups_pkey', pk, note: 'SQL: id ASC']
+  }
+
+  checks {
+    `((invite_code)::text ~ '^[A-Z0-9]{8}$'::text)` [name: 'groups_invite_code_check']
+    `(length(btrim((name)::text)) > 0)` [name: 'groups_name_not_blank_check']
+  }
+}
+
+Table group_members {
+  group_id uuid [not null]
+  user_id uuid [not null]
+  role MemberRole [not null, default: `'MEMBER'::"MemberRole"`]
+  joined_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (group_id, user_id) [name: 'group_members_pkey', pk, note: 'SQL: group_id ASC, user_id ASC']
+    user_id [name: 'group_members_user_id_idx', note: 'SQL: user_id ASC']
+  }
+}
+
+Table group_challenges {
+  id uuid [not null]
+  group_id uuid [not null]
+  title varchar(150) [not null]
+  description text
+  start_at timestamptz [not null]
+  end_at timestamptz [not null]
+  status GroupChallengeStatus [not null, default: `'SCHEDULED'::"GroupChallengeStatus"`]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (group_id, status, start_at) [name: 'group_challenges_group_id_status_start_at_idx', note: 'SQL: group_id ASC, status ASC, start_at ASC']
+    id [name: 'group_challenges_pkey', pk, note: 'SQL: id ASC']
+  }
+
+  checks {
+    `(end_at > start_at)` [name: 'group_challenges_date_range_check']
+    `(length(btrim((title)::text)) > 0)` [name: 'group_challenges_title_not_blank_check']
+  }
+}
+
+Table feed_posts {
+  id uuid [not null]
+  group_id uuid [not null]
+  user_id uuid [not null]
+  meal_log_id uuid
+  content text
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (group_id, created_at) [name: 'feed_posts_group_id_created_at_idx', note: 'SQL: group_id ASC, created_at DESC']
+    meal_log_id [name: 'feed_posts_meal_log_id_idx', note: 'SQL: meal_log_id ASC']
+    id [name: 'feed_posts_pkey', pk, note: 'SQL: id ASC']
+    (user_id, created_at) [name: 'feed_posts_user_id_created_at_idx', note: 'SQL: user_id ASC, created_at DESC']
+  }
+
+  checks {
+    `((meal_log_id IS NOT NULL) OR ((content IS NOT NULL) AND (length(btrim(content)) > 0)))` [name: 'feed_posts_content_check']
+  }
+}
+
+Table post_reactions {
+  id uuid [not null]
+  post_id uuid [not null]
+  user_id uuid [not null]
+  reaction_type ReactionType [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    id [name: 'post_reactions_pkey', pk, note: 'SQL: id ASC']
+    (post_id, user_id) [name: 'post_reactions_post_id_user_id_key', unique, note: 'SQL: post_id ASC, user_id ASC']
+    user_id [name: 'post_reactions_user_id_idx', note: 'SQL: user_id ASC']
+  }
+}
+
+Table chat_messages {
+  id uuid [not null]
+  group_id uuid [not null]
+  user_id uuid [not null]
+  message text [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (group_id, created_at) [name: 'chat_messages_group_id_created_at_idx', note: 'SQL: group_id ASC, created_at DESC']
+    id [name: 'chat_messages_pkey', pk, note: 'SQL: id ASC']
+    user_id [name: 'chat_messages_user_id_idx', note: 'SQL: user_id ASC']
+  }
+
+  checks {
+    `(length(btrim(message)) > 0)` [name: 'chat_messages_message_not_blank_check']
+  }
+}
+
+Table point_transactions {
+  id uuid [not null]
+  user_id uuid [not null]
+  amount int [not null]
+  reason PointTransactionReason [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  metadata jsonb [not null, default: `'{}'::jsonb`]
+
+  indexes {
+    id [name: 'point_transactions_pkey', pk, note: 'SQL: id ASC']
+    (user_id, created_at) [name: 'point_transactions_user_id_created_at_idx', note: 'SQL: user_id ASC, created_at DESC']
+  }
+
+  checks {
+    `(amount <> 0)` [name: 'point_transactions_amount_check']
+    `(jsonb_typeof(metadata) = 'object'::text)` [name: 'point_transactions_metadata_check']
+  }
+}
+
+Table achievements {
+  id uuid [not null]
+  code varchar(50) [not null]
+  title varchar(100) [not null]
+  description text
+  icon_url varchar(500)
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    code [name: 'achievements_code_key', unique, note: 'SQL: code ASC']
+    id [name: 'achievements_pkey', pk, note: 'SQL: id ASC']
+  }
+
+  checks {
+    `((code)::text ~ '^[A-Z0-9_]{2,50}$'::text)` [name: 'achievements_code_check']
+    `(length(btrim((title)::text)) > 0)` [name: 'achievements_title_not_blank_check']
+  }
+}
+
+Table user_achievements {
+  user_id uuid [not null]
+  achievement_id uuid [not null]
+  unlocked_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    achievement_id [name: 'user_achievements_achievement_id_idx', note: 'SQL: achievement_id ASC']
+    (user_id, achievement_id) [name: 'user_achievements_pkey', pk, note: 'SQL: user_id ASC, achievement_id ASC']
+  }
+}
+
+Table daily_missions {
+  id uuid [not null]
+  title varchar(150) [not null]
+  target_count int [not null, default: `1`]
+  points_reward int [not null]
+  code varchar(50) [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    code [name: 'daily_missions_code_key', unique, note: 'SQL: code ASC']
+    id [name: 'daily_missions_pkey', pk, note: 'SQL: id ASC']
+  }
+
+  checks {
+    `((code)::text ~ '^[A-Z0-9_]{2,50}$'::text)` [name: 'daily_missions_code_check']
+    `(points_reward >= 0)` [name: 'daily_missions_points_reward_check']
+    `(target_count > 0)` [name: 'daily_missions_target_count_check']
+    `(length(btrim((title)::text)) > 0)` [name: 'daily_missions_title_not_blank_check']
+  }
+}
+
+Table user_daily_missions {
+  user_id uuid [not null]
+  mission_id uuid [not null]
+  current_progress int [not null, default: `0`]
+  is_claimed boolean [not null, default: `false`]
+  date date [not null]
+
+  indexes {
+    (mission_id, date) [name: 'user_daily_missions_mission_id_date_idx', note: 'SQL: mission_id ASC, date ASC']
+    (user_id, mission_id, date) [name: 'user_daily_missions_pkey', pk, note: 'SQL: user_id ASC, mission_id ASC, date ASC']
+  }
+
+  checks {
+    `(current_progress >= 0)` [name: 'user_daily_missions_progress_check']
+  }
+}
+
+Table cosmetic_items {
+  id uuid [not null]
+  name varchar(100) [not null]
+  description text
+  type CosmeticType [not null]
+  price int [not null]
+  asset_url varchar(500) [not null]
+  code varchar(50) [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    code [name: 'cosmetic_items_code_key', unique, note: 'SQL: code ASC']
+    id [name: 'cosmetic_items_pkey', pk, note: 'SQL: id ASC']
+  }
+
+  checks {
+    `(length(btrim((asset_url)::text)) > 0)` [name: 'cosmetic_items_asset_url_check']
+    `((code)::text ~ '^[A-Z0-9_]{2,50}$'::text)` [name: 'cosmetic_items_code_check']
+    `(length(btrim((name)::text)) > 0)` [name: 'cosmetic_items_name_not_blank_check']
+    `(price >= 0)` [name: 'cosmetic_items_price_check']
+  }
+}
+
+Table user_cosmetics {
+  user_id uuid [not null]
+  cosmetic_item_id uuid [not null]
+  acquired_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    cosmetic_item_id [name: 'user_cosmetics_cosmetic_item_id_idx', note: 'SQL: cosmetic_item_id ASC']
+    (user_id, cosmetic_item_id) [name: 'user_cosmetics_pkey', pk, note: 'SQL: user_id ASC, cosmetic_item_id ASC']
+  }
+}
+
+Ref body_measurements_user_id_fkey: body_measurements.user_id > users.id [delete: cascade, update: cascade]
+Ref chat_messages_group_id_fkey: chat_messages.group_id > groups.id [delete: cascade, update: cascade]
+Ref chat_messages_user_id_fkey: chat_messages.user_id > users.id [delete: cascade, update: cascade]
+Ref diet_plans_user_id_fkey: diet_plans.user_id > users.id [delete: cascade, update: cascade]
+Ref feed_posts_group_id_fkey: feed_posts.group_id > groups.id [delete: cascade, update: cascade]
+Ref feed_posts_meal_log_id_fkey: feed_posts.meal_log_id > meal_logs.id [delete: set null, update: cascade]
+Ref feed_posts_user_id_fkey: feed_posts.user_id > users.id [delete: cascade, update: cascade]
+Ref group_challenges_group_id_fkey: group_challenges.group_id > groups.id [delete: cascade, update: cascade]
+Ref group_members_group_id_fkey: group_members.group_id > groups.id [delete: cascade, update: cascade]
+Ref group_members_user_id_fkey: group_members.user_id > users.id [delete: cascade, update: cascade]
+Ref groups_creator_id_fkey: groups.creator_id > users.id [delete: restrict, update: cascade]
+Ref meal_log_items_food_id_fkey: meal_log_items.food_id > foods.id [delete: set null, update: cascade]
+Ref meal_log_items_meal_log_id_fkey: meal_log_items.meal_log_id > meal_logs.id [delete: cascade, update: cascade]
+Ref meal_logs_planned_meal_id_fkey: meal_logs.planned_meal_id > planned_meals.id [delete: set null, update: cascade]
+Ref meal_logs_user_id_fkey: meal_logs.user_id > users.id [delete: cascade, update: cascade]
+Ref planned_meal_items_food_id_fkey: planned_meal_items.food_id > foods.id [delete: set null, update: cascade]
+Ref planned_meal_items_planned_meal_id_fkey: planned_meal_items.planned_meal_id > planned_meals.id [delete: cascade, update: cascade]
+Ref planned_meals_diet_plan_id_fkey: planned_meals.diet_plan_id > diet_plans.id [delete: cascade, update: cascade]
+Ref point_transactions_user_id_fkey: point_transactions.user_id > users.id [delete: cascade, update: cascade]
+Ref post_reactions_post_id_fkey: post_reactions.post_id > feed_posts.id [delete: cascade, update: cascade]
+Ref post_reactions_user_id_fkey: post_reactions.user_id > users.id [delete: cascade, update: cascade]
+Ref user_achievements_achievement_id_fkey: user_achievements.achievement_id > achievements.id [delete: restrict, update: cascade]
+Ref user_achievements_user_id_fkey: user_achievements.user_id > users.id [delete: cascade, update: cascade]
+Ref user_cosmetics_cosmetic_item_id_fkey: user_cosmetics.cosmetic_item_id > cosmetic_items.id [delete: restrict, update: cascade]
+Ref user_cosmetics_user_id_fkey: user_cosmetics.user_id > users.id [delete: cascade, update: cascade]
+Ref user_daily_missions_mission_id_fkey: user_daily_missions.mission_id > daily_missions.id [delete: restrict, update: cascade]
+Ref user_daily_missions_user_id_fkey: user_daily_missions.user_id > users.id [delete: cascade, update: cascade]
+Ref user_profiles_user_id_fkey: user_profiles.user_id - users.id [delete: cascade, update: cascade]
+Ref user_stats_user_id_fkey: user_stats.user_id - users.id [delete: cascade, update: cascade]
