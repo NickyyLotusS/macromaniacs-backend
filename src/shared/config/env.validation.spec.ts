@@ -19,6 +19,30 @@ describe('environment validation', () => {
     });
   });
 
+  it('uses the hosting PORT when APP_PORT is not defined', () => {
+    expect(
+      validate({ ...validConfig, APP_PORT: undefined, PORT: '8080' }),
+    ).toMatchObject({ APP_PORT: 8080 });
+  });
+
+  it('prefers APP_PORT over the hosting PORT', () => {
+    expect(validate({ ...validConfig, PORT: '8080' })).toMatchObject({
+      APP_PORT: 3000,
+    });
+  });
+
+  it('uses port 3000 only when neither port variable is defined', () => {
+    expect(
+      validate({ ...validConfig, APP_PORT: undefined, PORT: undefined }),
+    ).toMatchObject({ APP_PORT: 3000 });
+  });
+
+  it('rejects an invalid hosting PORT', () => {
+    expect(() =>
+      validate({ ...validConfig, APP_PORT: undefined, PORT: 'invalid' }),
+    ).toThrow('APP_PORT deve ser um número entre 1 e 65535');
+  });
+
   it('rejects a missing JWT secret', () => {
     expect(() =>
       validate({ ...validConfig, JWT_SECRET: undefined }),

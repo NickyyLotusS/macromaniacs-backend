@@ -123,3 +123,22 @@ docker compose -f infra/docker/compose.yaml --profile test up -d postgres-test
 ```
 
 Ele usa `tmpfs` e não compartilha o volume do banco de desenvolvimento.
+
+## Deploy
+
+O backend aceita `APP_PORT` no desenvolvimento e a variável padrão `PORT`
+fornecida por plataformas de hospedagem. `APP_PORT` tem precedência quando as
+duas estiverem definidas.
+
+Fluxo esperado no Railway:
+
+```text
+Build: npm ci && npm run build
+Start: npm run start:deploy
+Health check: /health
+```
+
+`start:deploy` executa as migrations JavaScript compiladas em
+`dist/integrations/database/migrations` antes de iniciar a API. Configure no
+provedor `DATABASE_URL`, `APP_ENV`, `JWT_SECRET`, `JWT_EXPIRES_IN` e
+`CORS_ORIGINS`. Segredos e URLs reais de banco nunca devem ser commitados.

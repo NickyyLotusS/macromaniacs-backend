@@ -13,6 +13,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "start:deploy": "npm run migration:run:prod && npm run start:prod",
     "lint": "oxlint src/ test/",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "test:watch": "jest --watch",
@@ -22,7 +23,8 @@
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/integrations/database/data-source.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/integrations/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/integrations/database/data-source.ts",
-    "migration:show": "typeorm-ts-node-commonjs migration:show -d src/integrations/database/data-source.ts"
+    "migration:show": "typeorm-ts-node-commonjs migration:show -d src/integrations/database/data-source.ts",
+    "migration:run:prod": "typeorm migration:run -d dist/integrations/database/data-source.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

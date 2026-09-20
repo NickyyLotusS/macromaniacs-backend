@@ -16,7 +16,7 @@ export function validate(
     throw new Error(`APP_ENV inválido: ${appEnv}`);
   }
 
-  const appPort = Number(config.APP_PORT ?? 3000);
+  const appPort = Number(config.APP_PORT ?? config.PORT ?? 3000);
 
   if (!Number.isInteger(appPort) || appPort < 1 || appPort > 65535) {
     throw new Error('APP_PORT deve ser um número entre 1 e 65535');
