@@ -1,0 +1,20 @@
+export enum BiologicalSex {
+  FEMALE = 'FEMALE',
+  MALE = 'MALE',
+}
+
+export enum NutritionGoal {
+  LOSE_WEIGHT = 'LOSE_WEIGHT',
+  GAIN_MUSCLE = 'GAIN_MUSCLE',
+  GAIN_STRENGTH = 'GAIN_STRENGTH',
+  MAINTAIN = 'MAINTAIN',
+  PERFORMANCE = 'PERFORMANCE',
+}
+
+export enum ActivityLevel {
+  SEDENTARY = 'SEDENTARY',
+  LIGHT = 'LIGHT',
+  MODERATE = 'MODERATE',
+  INTENSE = 'INTENSE',
+  VERY_INTENSE = 'VERY_INTENSE',
+}
