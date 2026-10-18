@@ -27,6 +27,23 @@ Todo alimento normalizado preserva `source`, `externalId` e `retrievedAt`.
 acordo com a constraint canônica. O payload bruto não é persistido nem logado
 por este contrato.
 
+## Repositório local e cache
+
+`FoodCacheService` consulta o banco por barcode antes de chamar um provider.
+Resultados externos válidos são normalizados e persistidos pela identidade
+`source + externalId`; consultas repetidas devolvem o mesmo registro local. A
+constraint de barcode impede duplicação entre fontes, inclusive sob corrida.
+
+`createdAt` e `updatedAt` são a trilha de auditoria do cache local. O instante
+`retrievedAt` permanece no limite da integração para políticas futuras de
+expiração; não existe coluna canônica para persistir esse instante e esta entrega
+não altera o schema.
+
+Cadastro manual usa `POST /v1/foods/manual`, exige JWT e grava `source=MANUAL`
+com `externalId=null`. Nome, barcode, nutrientes e porção são validados antes da
+persistência; os limites respeitam `NUMERIC(6,2)` e barcode duplicado retorna
+conflito controlado.
+
 ## Próximos adapters
 
 Os clientes de Open Food Facts, TBCA e USDA devem ficar em `src/integrations`,
