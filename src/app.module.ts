@@ -4,6 +4,8 @@ import { HealthModule } from './modules/health/health.module';
 import { validate } from './shared/config/env.validation';
 import { DatabaseModule } from './integrations/database/database.module';
 import { FoodProductsModule } from './modules/food-products/food-products.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { FoodProductsModule } from './modules/food-products/food-products.module
     }),
     DatabaseModule,
     FoodProductsModule,
+    AuthModule,
+    UsersModule,
     HealthModule,
   ],
 })
