@@ -55,6 +55,7 @@ function createSwaggerConfig() {
     .addTag('health', 'Disponibilidade da aplicação')
     .addTag('auth', 'Cadastro, login e sessão atual')
     .addTag('users', 'Perfil, medidas e métricas nutricionais')
+    .addTag('foods', 'Catálogo, cache e consulta de alimentos')
     .build();
 }
 
