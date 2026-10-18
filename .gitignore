@@ -26,6 +26,7 @@ temp/
 *.tmp
 *.temp
 .cache/
+.npm-cache/
 backups/
 *.dump
 *.dump.json
