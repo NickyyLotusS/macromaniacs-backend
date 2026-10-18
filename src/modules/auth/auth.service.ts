@@ -6,6 +6,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, QueryFailedError, Repository } from 'typeorm';
+import { UserProfile } from '../../integrations/database/entities/identity/user-profile.entity';
+import { User } from '../../integrations/database/entities/identity/user.entity';
 import { PasswordHasherService } from '../../shared/security/password-hasher.service';
 import type {
   AccessTokenResponseDto,
@@ -13,8 +15,6 @@ import type {
 } from './dto/auth-response.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
-import { UserProfile } from './entities/user-profile.entity';
-import { User } from './entities/user.entity';
 
 type PostgresDriverError = {
   code?: string;
@@ -43,29 +43,22 @@ export class AuthService {
     });
 
     if (existingUser) {
-      this.throwDuplicate(existingUser.email === dto.email ? 'email' : 'username');
+      this.throwDuplicate(
+        existingUser.email === dto.email ? 'email' : 'username',
+      );
     }
 
     const passwordHash = await this.passwordHasher.hash(dto.password);
-    const termsAcceptedAt = new Date();
-
     try {
       return await this.dataSource.transaction(async (manager) => {
         const user = manager.create(User, {
           email: dto.email,
           username: dto.username,
+          displayName: dto.username,
           passwordHash,
-          termsAccepted: true,
-          termsAcceptedAt,
         });
         const savedUser = await manager.save(User, user);
-
-        const profile = manager.create(UserProfile, {
-          userId: savedUser.id,
-        });
-        const savedProfile = await manager.save(UserProfile, profile);
-
-        return this.toResponse(savedUser, savedProfile);
+        return this.toResponse(savedUser, null);
       });
     } catch (error) {
       if (this.isUniqueViolation(error)) {
@@ -109,28 +102,26 @@ export class AuthService {
       relations: { profile: true },
     });
 
-    if (!user?.profile) {
+    if (!user) {
       throw new UnauthorizedException('Invalid or expired token');
     }
 
-    return this.toResponse(user, user.profile);
+    return this.toResponse(user, user.profile ?? null);
   }
 
   private toResponse(
     user: User,
-    profile: UserProfile,
+    profile: UserProfile | null,
   ): AuthenticatedUserResponseDto {
     return {
       id: user.id,
       email: user.email,
       username: user.username,
-      termsAccepted: user.termsAccepted,
-      termsAcceptedAt: user.termsAcceptedAt.toISOString(),
+      displayName: user.displayName,
       createdAt: user.createdAt.toISOString(),
-      profile: {
-        id: profile.id,
-        onboardingCompleted: profile.onboardingCompleted ?? false,
-      },
+      profile: profile
+        ? { id: profile.userId, onboardingCompleted: true }
+        : null,
     };
   }
 

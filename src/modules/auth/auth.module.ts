@@ -3,11 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import type { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserProfile } from '../../integrations/database/entities/identity/user-profile.entity';
+import { User } from '../../integrations/database/entities/identity/user.entity';
 import { PasswordHasherService } from '../../shared/security/password-hasher.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { UserProfile } from './entities/user-profile.entity';
-import { User } from './entities/user.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
@@ -20,10 +20,9 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
       useFactory: (config: ConfigService): JwtModuleOptions => ({
         secret: config.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn:
-            config.getOrThrow<string>('JWT_EXPIRES_IN') as NonNullable<
-              JwtModuleOptions['signOptions']
-            >['expiresIn'],
+          expiresIn: config.getOrThrow<string>('JWT_EXPIRES_IN') as NonNullable<
+            JwtModuleOptions['signOptions']
+          >['expiresIn'],
         },
       }),
     }),

@@ -1,22 +1,16 @@
+import './setup-env';
 import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { getDataSourceToken } from '@nestjs/typeorm';
-import { randomUUID } from 'node:crypto';
-import { DataType, newDb } from 'pg-mem';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
+import { configureApplication, createSwaggerDocument } from '../src/app.setup';
 import {
-  configureApplication,
-  createSwaggerDocument,
-} from '../src/app.setup';
-import { CreateIdentitySchema2026091700000 } from '../src/integrations/database/migrations/2026091700000-create-identity-schema';
-import { AddNutritionProfile2026091900000 } from '../src/integrations/database/migrations/2026091900000-add-nutrition-profile';
-import { UserProfile } from '../src/modules/auth/entities/user-profile.entity';
-import { User } from '../src/modules/auth/entities/user.entity';
-import { BodyMeasurement } from '../src/modules/users/entities/body-measurement.entity';
-import { UserStat } from '../src/modules/users/entities/user-stat.entity';
+  clearIdentityData,
+  createIdentityTestDataSource,
+} from './support/identity-test-database';
 
 const testJwtSecret = 'test-only-jwt-secret-with-at-least-32-characters';
 
@@ -31,59 +25,16 @@ describe('Authentication MVP (e2e)', () => {
   let app: INestApplication;
   let database: DataSource;
 
-  const validRegistration = (
-    suffix = 'user',
-  ): RegisterPayload => ({
+  const validRegistration = (suffix = 'user'): RegisterPayload => ({
     email: `${suffix}@example.com`,
     username: suffix,
     password: 'strong-password-123',
     termsAccepted: true,
   });
 
-  const createMemoryDataSource = async (): Promise<DataSource> => {
-    const memoryDatabase = newDb({ autoCreateForeignKeyIndices: true });
-    memoryDatabase.public.registerFunction({
-      name: 'current_database',
-      returns: DataType.text,
-      implementation: () => 'macromaniacs_test',
-    });
-    memoryDatabase.public.registerFunction({
-      name: 'version',
-      returns: DataType.text,
-      implementation: () => 'PostgreSQL 17',
-    });
-    memoryDatabase.registerExtension('pgcrypto', (schema) => {
-      schema.registerFunction({
-        name: 'gen_random_uuid',
-        returns: DataType.uuid,
-        impure: true,
-        implementation: randomUUID,
-      });
-    });
-
-    const dataSource = await memoryDatabase.adapters.createTypeormDataSource({
-      type: 'postgres',
-      entities: [User, UserProfile, BodyMeasurement, UserStat],
-      migrations: [
-        CreateIdentitySchema2026091700000,
-        AddNutritionProfile2026091900000,
-      ],
-      synchronize: false,
-    });
-    await dataSource.initialize();
-    return dataSource;
-  };
-
   beforeAll(async () => {
     expect(process.env.JWT_SECRET).toBe(testJwtSecret);
-
-    const migrationValidationDatabase = await createMemoryDataSource();
-    await migrationValidationDatabase.runMigrations();
-    await migrationValidationDatabase.undoLastMigration();
-    await migrationValidationDatabase.destroy();
-
-    database = await createMemoryDataSource();
-    await database.runMigrations();
+    database = await createIdentityTestDataSource();
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
@@ -98,10 +49,7 @@ describe('Authentication MVP (e2e)', () => {
   });
 
   beforeEach(async () => {
-    await database.query('DELETE FROM "user_stats"');
-    await database.query('DELETE FROM "body_measurements"');
-    await database.query('DELETE FROM "user_profiles"');
-    await database.query('DELETE FROM "users"');
+    await clearIdentityData(database);
   });
 
   afterAll(async () => {
@@ -134,12 +82,19 @@ describe('Authentication MVP (e2e)', () => {
     expect(response.body).toMatchObject({
       email: 'user@example.com',
       username: 'user',
-      termsAccepted: true,
+      displayName: 'user',
+      profile: null,
     });
-    expect(response.body.profile.id).toBeDefined();
     expect(response.body.password).toBeUndefined();
     expect(response.body.passwordHash).toBeUndefined();
     expect(response.body.hash).toBeUndefined();
+
+    const [stored] = (await database.query(
+      'SELECT password_hash FROM "users" WHERE email = $1',
+      ['user@example.com'],
+    )) as Array<{ password_hash: string }>;
+    expect(stored.password_hash).not.toBe('strong-password-123');
+    expect(stored.password_hash).toMatch(/^scrypt\$/);
   });
 
   it('rejects a duplicate email with 409', async () => {
@@ -176,6 +131,13 @@ describe('Authentication MVP (e2e)', () => {
     await request(app.getHttpServer())
       .post('/v1/auth/register')
       .send({ ...validRegistration(), password: 'short' })
+      .expect(400);
+  });
+
+  it('requires explicit acceptance of the terms', async () => {
+    await request(app.getHttpServer())
+      .post('/v1/auth/register')
+      .send({ ...validRegistration(), termsAccepted: false })
       .expect(400);
   });
 

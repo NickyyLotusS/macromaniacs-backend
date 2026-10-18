@@ -25,7 +25,9 @@ export class UsersController {
   @Get('me')
   @ApiOperation({ summary: 'Consultar o próprio perfil nutricional' })
   @ApiOkResponse({ type: MyProfileResponseDto })
-  @ApiUnauthorizedResponse({ description: 'Token ausente, inválido ou expirado' })
+  @ApiUnauthorizedResponse({
+    description: 'Token ausente, inválido ou expirado',
+  })
   getMe(
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<MyProfileResponseDto> {
@@ -39,7 +41,9 @@ export class UsersController {
   @ApiOkResponse({ type: MyProfileResponseDto })
   @ApiBadRequestResponse({ description: 'Dados corporais ou perfil inválidos' })
   @ApiConflictResponse({ description: 'Username já utilizado' })
-  @ApiUnauthorizedResponse({ description: 'Token ausente, inválido ou expirado' })
+  @ApiUnauthorizedResponse({
+    description: 'Token ausente, inválido ou expirado',
+  })
   updateMe(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Body() dto: UpdateMyProfileDto,

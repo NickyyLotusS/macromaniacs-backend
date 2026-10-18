@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UserProfileResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -18,17 +18,18 @@ export class AuthenticatedUserResponseDto {
   @ApiProperty({ example: 'macro_user' })
   username!: string;
 
-  @ApiProperty({ example: true })
-  termsAccepted!: boolean;
-
-  @ApiProperty({ format: 'date-time' })
-  termsAcceptedAt!: string;
+  @ApiProperty({ example: 'Macro User' })
+  displayName!: string;
 
   @ApiProperty({ format: 'date-time' })
   createdAt!: string;
 
-  @ApiProperty({ type: () => UserProfileResponseDto })
-  profile!: UserProfileResponseDto;
+  @ApiPropertyOptional({
+    type: () => UserProfileResponseDto,
+    nullable: true,
+    description: 'Ausente até a conclusão do onboarding nutricional',
+  })
+  profile!: UserProfileResponseDto | null;
 }
 
 export class AccessTokenResponseDto {

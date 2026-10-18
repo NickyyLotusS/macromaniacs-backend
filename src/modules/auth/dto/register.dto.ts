@@ -11,26 +11,26 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
-  @ApiProperty({ example: 'user@example.com', maxLength: 254 })
+  @ApiProperty({ example: 'user@example.com', maxLength: 255 })
   @Transform(({ value }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
   @IsEmail()
-  @MaxLength(254)
+  @MaxLength(255)
   email!: string;
 
   @ApiProperty({
     example: 'macro_user',
     minLength: 3,
-    maxLength: 30,
-    pattern: '^[a-zA-Z0-9_]+$',
+    maxLength: 50,
+    pattern: '^[a-z0-9_]+$',
   })
   @Transform(({ value }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
   @IsString()
-  @Length(3, 30)
-  @Matches(/^[a-zA-Z0-9_]+$/, {
+  @Length(3, 50)
+  @Matches(/^[a-z0-9_]+$/, {
     message: 'username must contain only letters, numbers and underscore',
   })
   username!: string;

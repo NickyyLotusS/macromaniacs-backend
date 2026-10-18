@@ -29,8 +29,9 @@ neutros e não recebem prefixo de versão.
 
 ## Erros
 
-Erros possuem `statusCode`, `error`, `message`, `timestamp` e `path`. Respostas
-`500` nunca expõem stack trace, SQL ou detalhes internos do ORM.
+Erros possuem `statusCode`, `error`, `message`, `timestamp`, `path` e
+`correlationId`. Respostas `500` nunca expõem stack trace, SQL ou detalhes
+internos do ORM.
 
 - `400 Bad Request`: payload inválido ou propriedade inesperada.
 - `401 Unauthorized`: credenciais, token ou autenticação ausente.
@@ -41,10 +42,19 @@ Erros possuem `statusCode`, `error`, `message`, `timestamp` e `path`. Respostas
 O login sempre responde `Invalid credentials` para usuário inexistente ou senha
 incorreta.
 
+## Rastreabilidade e logs
+
+Toda resposta inclui o header `X-Correlation-Id`. Um identificador recebido é
+reutilizado apenas quando contém caracteres seguros e tem no máximo 128
+caracteres; caso contrário, a API gera um UUID. Logs HTTP são JSON e registram
+somente correlation ID, método, rota, status e duração. Payloads, senhas, tokens
+e headers de autenticação não são registrados.
+
 ## Paginação
 
-Quando endpoints de listagem forem adicionados, usarão `page` e `limit`, com
-limite máximo validado. A resposta deverá separar os itens de metadados:
+Endpoints de listagem usarão `page` (padrão 1), `limit` (padrão 20, máximo 100),
+`sortBy` e `sortDirection` (`asc` ou `desc`). Cada recurso limita explicitamente
+os campos aceitos em `sortBy`. A resposta separa os itens de metadados:
 
 ```json
 {

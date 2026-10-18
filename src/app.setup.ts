@@ -3,6 +3,7 @@ import type { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { OpenAPIObject } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './shared/http/http-exception.filter';
+import { requestContextMiddleware } from './shared/http/request-context.middleware';
 
 type ApplicationSetupOptions = {
   corsOrigins?: readonly string[];
@@ -13,11 +14,13 @@ export function configureApplication(
   options: ApplicationSetupOptions = {},
 ): void {
   app.enableShutdownHooks();
+  app.use(requestContextMiddleware);
 
   app.enableCors({
     origin: options.corsOrigins ?? ['http://localhost:5173'],
     methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-Id'],
+    exposedHeaders: ['X-Correlation-Id'],
   });
 
   app.enableVersioning({
@@ -55,9 +58,7 @@ function createSwaggerConfig() {
     .build();
 }
 
-export function createSwaggerDocument(
-  app: INestApplication,
-): OpenAPIObject {
+export function createSwaggerDocument(app: INestApplication): OpenAPIObject {
   return SwaggerModule.createDocument(app, createSwaggerConfig());
 }
 

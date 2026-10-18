@@ -57,7 +57,9 @@ export class AuthController {
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Obter sessão atual' })
   @ApiOkResponse({ type: AuthenticatedUserResponseDto })
-  @ApiUnauthorizedResponse({ description: 'Token ausente, inválido ou expirado' })
+  @ApiUnauthorizedResponse({
+    description: 'Token ausente, inválido ou expirado',
+  })
   me(
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<AuthenticatedUserResponseDto> {

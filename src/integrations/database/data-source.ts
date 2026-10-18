@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import { DataSource } from 'typeorm';
+import { DatabaseSource } from './database-source';
+import { databaseOptions } from './database.options';
 
 const databaseUrl = process.env.DATABASE_URL?.trim();
 
@@ -9,12 +10,4 @@ if (!databaseUrl) {
   );
 }
 
-export default new DataSource({
-  type: 'postgres',
-  url: databaseUrl,
-  synchronize: false,
-  migrationsRun: false,
-  migrationsTableName: 'migrations',
-  entities: [`${__dirname}/../../modules/**/*.entity{.ts,.js}`],
-  migrations: [`${__dirname}/migrations/*{.ts,.js}`],
-});
+export default new DatabaseSource(databaseOptions(databaseUrl));

@@ -44,9 +44,9 @@ describe('environment validation', () => {
   });
 
   it('rejects a missing JWT secret', () => {
-    expect(() =>
-      validate({ ...validConfig, JWT_SECRET: undefined }),
-    ).toThrow('JWT_SECRET deve possuir pelo menos 32 caracteres');
+    expect(() => validate({ ...validConfig, JWT_SECRET: undefined })).toThrow(
+      'JWT_SECRET deve possuir pelo menos 32 caracteres',
+    );
   });
 
   it('rejects the example JWT secret placeholder', () => {
@@ -59,9 +59,9 @@ describe('environment validation', () => {
   });
 
   it('rejects an invalid JWT expiration', () => {
-    expect(() =>
-      validate({ ...validConfig, JWT_EXPIRES_IN: 'never' }),
-    ).toThrow('JWT_EXPIRES_IN deve usar um valor');
+    expect(() => validate({ ...validConfig, JWT_EXPIRES_IN: 'never' })).toThrow(
+      'JWT_EXPIRES_IN deve usar um valor',
+    );
   });
 
   it('normalizes multiple CORS origins', () => {
@@ -76,8 +76,8 @@ describe('environment validation', () => {
   });
 
   it('rejects an invalid CORS origin', () => {
-    expect(() =>
-      validate({ ...validConfig, CORS_ORIGINS: '*' }),
-    ).toThrow('Origem CORS inválida');
+    expect(() => validate({ ...validConfig, CORS_ORIGINS: '*' })).toThrow(
+      'Origem CORS inválida',
+    );
   });
 });

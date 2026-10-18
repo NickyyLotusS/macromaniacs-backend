@@ -70,8 +70,12 @@ export class NutritionCalculatorService {
     heightCm: number;
     ageYears: number;
   }): number {
-    const sexAdjustment =
-      input.biologicalSex === BiologicalSex.MALE ? 5 : -161;
+    if (input.biologicalSex === BiologicalSex.NOT_INFORMED) {
+      throw new BadRequestException(
+        'biologicalSex must be FEMALE or MALE to calculate nutrition metrics',
+      );
+    }
+    const sexAdjustment = input.biologicalSex === BiologicalSex.MALE ? 5 : -161;
     const bmr =
       10 * input.weightKg +
       6.25 * input.heightCm -

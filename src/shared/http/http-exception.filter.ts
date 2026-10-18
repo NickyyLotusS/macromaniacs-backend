@@ -5,7 +5,8 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
+import type { CorrelatedRequest } from './request-context.middleware';
 
 type ExceptionBody = {
   error?: string;
@@ -16,7 +17,7 @@ type ExceptionBody = {
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const http = host.switchToHttp();
-    const request = http.getRequest<Request>();
+    const request = http.getRequest<CorrelatedRequest>();
     const response = http.getResponse<Response>();
 
     const status =
@@ -36,6 +37,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
           : 'Request failed'),
       timestamp: new Date().toISOString(),
       path: request.originalUrl,
+      correlationId: request.correlationId,
     });
   }
 

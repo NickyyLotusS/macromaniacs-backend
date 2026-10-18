@@ -1,6 +1,7 @@
 export enum BiologicalSex {
   FEMALE = 'FEMALE',
   MALE = 'MALE',
+  NOT_INFORMED = 'NOT_INFORMED',
 }
 
 export enum NutritionGoal {
@@ -8,6 +9,7 @@ export enum NutritionGoal {
   GAIN_MUSCLE = 'GAIN_MUSCLE',
   GAIN_STRENGTH = 'GAIN_STRENGTH',
   MAINTAIN = 'MAINTAIN',
+  RECOMPOSITION = 'RECOMPOSITION',
   PERFORMANCE = 'PERFORMANCE',
 }
 

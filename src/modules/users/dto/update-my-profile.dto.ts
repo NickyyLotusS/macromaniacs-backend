@@ -10,6 +10,7 @@ import {
   Max,
   MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
@@ -22,42 +23,43 @@ const trimOrNull = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? value.trim() || null : value;
 
 export class UpdateMyProfileDto {
-  @ApiPropertyOptional({ example: 'Nicolly', maxLength: 80, nullable: true })
-  @Transform(trimOrNull)
+  @ApiPropertyOptional({ example: 'Nicolly', maxLength: 100 })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsOptional()
   @IsString()
-  @MaxLength(80)
-  displayName?: string | null;
+  @MinLength(1)
+  @MaxLength(100)
+  displayName?: string;
 
-  @ApiPropertyOptional({ example: 'nicolly_28', minLength: 3, maxLength: 30 })
+  @ApiPropertyOptional({ example: 'nicolly_28', minLength: 3, maxLength: 50 })
   @Transform(({ value }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
   @IsOptional()
   @IsString()
-  @Length(3, 30)
-  @Matches(/^[a-zA-Z0-9_]+$/)
+  @Length(3, 50)
+  @Matches(/^[a-z0-9_]+$/)
   username?: string;
 
-  @ApiPropertyOptional({ format: 'date', example: '1998-04-12', nullable: true })
+  @ApiPropertyOptional({ format: 'date', example: '1998-04-12' })
   @IsOptional()
   @IsISO8601({ strict: true })
-  dateOfBirth?: string | null;
+  dateOfBirth?: string;
 
-  @ApiPropertyOptional({ enum: BiologicalSex, nullable: true })
+  @ApiPropertyOptional({ enum: BiologicalSex })
   @IsOptional()
   @IsEnum(BiologicalSex)
-  biologicalSex?: BiologicalSex | null;
+  biologicalSex?: BiologicalSex;
 
-  @ApiPropertyOptional({ enum: NutritionGoal, nullable: true })
+  @ApiPropertyOptional({ enum: NutritionGoal })
   @IsOptional()
   @IsEnum(NutritionGoal)
-  goal?: NutritionGoal | null;
+  goal?: NutritionGoal;
 
-  @ApiPropertyOptional({ enum: ActivityLevel, nullable: true })
+  @ApiPropertyOptional({ enum: ActivityLevel })
   @IsOptional()
   @IsEnum(ActivityLevel)
-  activityLevel?: ActivityLevel | null;
+  activityLevel?: ActivityLevel;
 
   @ApiPropertyOptional({ example: 165, minimum: 80, maximum: 250 })
   @IsOptional()
@@ -73,19 +75,32 @@ export class UpdateMyProfileDto {
   @Max(400)
   currentWeightKg?: number;
 
-  @ApiPropertyOptional({ example: 62, minimum: 25, maximum: 400, nullable: true })
+  @ApiPropertyOptional({
+    example: 62,
+    minimum: 25,
+    maximum: 400,
+    nullable: true,
+  })
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(25)
   @Max(400)
   targetWeightKg?: number | null;
 
-  @ApiPropertyOptional({ format: 'date', example: '2027-03-01', nullable: true })
+  @ApiPropertyOptional({
+    format: 'date',
+    example: '2027-03-01',
+    nullable: true,
+  })
   @IsOptional()
   @IsISO8601({ strict: true })
   targetDate?: string | null;
 
-  @ApiPropertyOptional({ example: 'Sem lactose', maxLength: 1000, nullable: true })
+  @ApiPropertyOptional({
+    example: 'Sem lactose',
+    maxLength: 1000,
+    nullable: true,
+  })
   @Transform(trimOrNull)
   @IsOptional()
   @IsString()

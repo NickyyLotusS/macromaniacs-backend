@@ -20,7 +20,7 @@ async function bootstrap(): Promise<void> {
     setupSwagger(app);
   }
 
-  const port = config.get<number>('APP_PORT') ?? 3000;
+  const port = config.getOrThrow<number>('APP_PORT');
 
   await app.listen(port, '0.0.0.0');
 }

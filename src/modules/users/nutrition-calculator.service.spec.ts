@@ -53,6 +53,17 @@ describe('NutritionCalculatorService', () => {
     ).toBe(1614);
   });
 
+  it('does not infer a sex-specific formula when sex is not informed', () => {
+    expect(() =>
+      calculator.calculateBmr({
+        biologicalSex: BiologicalSex.NOT_INFORMED,
+        weightKg: 80,
+        heightCm: 180,
+        ageYears: 30,
+      }),
+    ).toThrow(BadRequestException);
+  });
+
   it('calculates TDEE using the centralized activity factor', () => {
     expect(calculator.calculateTdee(1780, ActivityLevel.MODERATE)).toBe(2759);
   });

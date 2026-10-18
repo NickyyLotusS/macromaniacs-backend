@@ -50,6 +50,7 @@ type ApiError = {
   message: string | string[];
   timestamp: string;
   path: string;
+  correlationId: string;
 };
 
 export async function apiRequest<T>(
@@ -119,8 +120,9 @@ O envio final do onboarding usa `PATCH /v1/users/me`:
 }
 ```
 
-O servidor valida o payload, registra a medida e calcula as métricas na mesma
-transação. Exemplo resumido da resposta:
+O servidor valida o payload e registra perfil e medida na mesma transação. As
+métricas são calculadas pelo servidor e retornadas sem confiar em valores
+derivados enviados pelo cliente. Exemplo resumido da resposta:
 
 ```json
 {

@@ -1,21 +1,16 @@
+import './setup-env';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { randomUUID } from 'node:crypto';
-import { DataType, newDb } from 'pg-mem';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
+import { configureApplication, createSwaggerDocument } from '../src/app.setup';
 import {
-  configureApplication,
-  createSwaggerDocument,
-} from '../src/app.setup';
-import { CreateIdentitySchema2026091700000 } from '../src/integrations/database/migrations/2026091700000-create-identity-schema';
-import { AddNutritionProfile2026091900000 } from '../src/integrations/database/migrations/2026091900000-add-nutrition-profile';
-import { UserProfile } from '../src/modules/auth/entities/user-profile.entity';
-import { User } from '../src/modules/auth/entities/user.entity';
-import { BodyMeasurement } from '../src/modules/users/entities/body-measurement.entity';
-import { UserStat } from '../src/modules/users/entities/user-stat.entity';
+  clearIdentityData,
+  createIdentityTestDataSource,
+} from './support/identity-test-database';
 
 type Registration = {
   email: string;
@@ -27,40 +22,6 @@ type Registration = {
 describe('Users profile and onboarding (e2e)', () => {
   let app: INestApplication;
   let database: DataSource;
-
-  const createMemoryDataSource = async (): Promise<DataSource> => {
-    const memoryDatabase = newDb({ autoCreateForeignKeyIndices: true });
-    memoryDatabase.public.registerFunction({
-      name: 'current_database',
-      returns: DataType.text,
-      implementation: () => 'macromaniacs_test',
-    });
-    memoryDatabase.public.registerFunction({
-      name: 'version',
-      returns: DataType.text,
-      implementation: () => 'PostgreSQL 17',
-    });
-    memoryDatabase.registerExtension('pgcrypto', (schema) => {
-      schema.registerFunction({
-        name: 'gen_random_uuid',
-        returns: DataType.uuid,
-        impure: true,
-        implementation: randomUUID,
-      });
-    });
-
-    const dataSource = await memoryDatabase.adapters.createTypeormDataSource({
-      type: 'postgres',
-      entities: [User, UserProfile, BodyMeasurement, UserStat],
-      migrations: [
-        CreateIdentitySchema2026091700000,
-        AddNutritionProfile2026091900000,
-      ],
-      synchronize: false,
-    });
-    await dataSource.initialize();
-    return dataSource;
-  };
 
   const registration = (name: string): Registration => ({
     email: `${name}@example.com`,
@@ -90,18 +51,12 @@ describe('Users profile and onboarding (e2e)', () => {
     goal: 'LOSE_WEIGHT',
     activityLevel: 'MODERATE',
     targetWeightKg: 75,
-    targetDate: '2027-03-01',
+    targetDate: '2099-03-01',
     dietaryRestrictions: 'Sem lactose',
   });
 
   beforeAll(async () => {
-    const migrationDatabase = await createMemoryDataSource();
-    await migrationDatabase.runMigrations();
-    await migrationDatabase.undoLastMigration();
-    await migrationDatabase.destroy();
-
-    database = await createMemoryDataSource();
-    await database.runMigrations();
+    database = await createIdentityTestDataSource();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(getDataSourceToken())
       .useValue(database)
@@ -112,10 +67,7 @@ describe('Users profile and onboarding (e2e)', () => {
   });
 
   beforeEach(async () => {
-    await database.query('DELETE FROM "user_stats"');
-    await database.query('DELETE FROM "body_measurements"');
-    await database.query('DELETE FROM "user_profiles"');
-    await database.query('DELETE FROM "users"');
+    await clearIdentityData(database);
   });
 
   afterAll(async () => {
@@ -186,7 +138,9 @@ describe('Users profile and onboarding (e2e)', () => {
       },
     ],
   ])('rejects %s with 400', async (_name, payload) => {
-    const token = await registerAndLogin(`invalid${Math.random()}`.replace('.', ''));
+    const token = await registerAndLogin(
+      `invalid${Math.random()}`.replace('.', ''),
+    );
     await request(app.getHttpServer())
       .patch('/v1/users/me')
       .set('Authorization', `Bearer ${token}`)
@@ -213,6 +167,17 @@ describe('Users profile and onboarding (e2e)', () => {
       .set('Authorization', `Bearer ${secondToken}`)
       .expect(200);
     expect(unchanged.body.onboardingCompleted).toBe(false);
+  });
+
+  it('rejects a username already owned by another user', async () => {
+    const firstToken = await registerAndLogin('firstowner');
+    await registerAndLogin('reservedname');
+
+    await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .set('Authorization', `Bearer ${firstToken}`)
+      .send({ username: 'reservedname' })
+      .expect(409);
   });
 
   it('preserves measurement history and recalculates after weight changes', async () => {
