@@ -15,7 +15,7 @@ Este lote reconcilia o PR com a baseline oficial, sem `synchronize`, sem migrati
 | #3 | BE-003 | IMPLEMENTADA | TypeORM, baseline, comandos e safeguards já integrados. |
 | #4 | BE-004 | IMPLEMENTADA | Swagger em desenvolvimento, health/readiness documentados e convenções em `docs/api`. |
 | #5 | BE-005 | IMPLEMENTADA | `ValidationPipe` global com transformação, whitelist e rejeição de extras; E2E cobre 400. |
-| #6 | BE-007 | PARCIAL | JWT e `CurrentUser` implementados; ainda faltam contratos genéricos de papel, ownership e autenticação opcional. |
+| #6 | BE-007 | IMPLEMENTADA | JWT obrigatório/opcional, `CurrentUser`, papéis e ownership por parâmetro possuem guards, decorators, documentação e testes. |
 | #7 | BE-008 | IMPLEMENTADA | Contrato global de erro, 5xx genérico e correlation ID cobertos por E2E. |
 | #8 | BE-006 | IMPLEMENTADA | Scripts de qualidade, health test, E2E e checklist de PR disponíveis. |
 | #9 | BE-010 | PARCIAL | DTOs/metadados e validação existem; Swagger completo depende do primeiro endpoint paginado. |

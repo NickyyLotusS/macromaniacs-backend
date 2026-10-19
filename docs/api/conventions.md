@@ -14,6 +14,21 @@ neutros e não recebem prefixo de versão.
   identidade, e a sessão atual é exposta em `GET /v1/auth/me`.
 - Rotas protegidas usam `Authorization: Bearer <token>`.
 
+## Autenticação e autorização
+
+- `JwtAuthGuard` exige JWT válido e anexa `userId` (e claims de papéis válidas,
+  quando existirem) à requisição.
+- `OptionalJwtAuthGuard` permite requisição sem credencial, mas rejeita um header
+  `Authorization` enviado com token inválido; não transforma token inválido em
+  acesso anônimo.
+- `@Roles(...)` com `RolesGuard` aceita qualquer um dos papéis declarados e
+  responde `403` quando a identidade não possui permissão.
+- `@OwnerParam('userId')` com `OwnershipGuard` protege rotas cujo identificador
+  do proprietário está no path. Recursos identificados por outro ID continuam
+  validando ownership na consulta de domínio, filtrada pelo `userId` do JWT.
+- Os decorators apenas publicam metadados; módulos de negócio não precisam
+  conhecer parsing ou verificação de JWT.
+
 ## Payloads e DTOs
 
 - Payloads JSON usam `camelCase`.

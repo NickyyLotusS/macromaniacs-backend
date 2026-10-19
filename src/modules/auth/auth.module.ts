@@ -9,6 +9,9 @@ import { PasswordHasherService } from '../../shared/security/password-hasher.ser
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from './guards/optional-jwt-auth.guard';
+import { OwnershipGuard } from './guards/ownership.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [
@@ -28,7 +31,20 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtAuthGuard, PasswordHasherService],
-  exports: [JwtAuthGuard, JwtModule],
+  providers: [
+    AuthService,
+    JwtAuthGuard,
+    OptionalJwtAuthGuard,
+    OwnershipGuard,
+    RolesGuard,
+    PasswordHasherService,
+  ],
+  exports: [
+    JwtAuthGuard,
+    OptionalJwtAuthGuard,
+    OwnershipGuard,
+    RolesGuard,
+    JwtModule,
+  ],
 })
 export class AuthModule {}
