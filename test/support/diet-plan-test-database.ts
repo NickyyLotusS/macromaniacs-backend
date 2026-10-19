@@ -29,11 +29,55 @@ export async function createDietPlanTestDataSource(): Promise<DataSource> {
     );
     CREATE INDEX "diet_plans_user_id_status_idx"
       ON "diet_plans" ("user_id", "status");
+    CREATE TABLE "foods" (
+      "id" uuid PRIMARY KEY,
+      "name" varchar(255) NOT NULL,
+      "source" text NOT NULL,
+      "external_id" varchar(100),
+      "barcode" varchar(100),
+      "calories_per_100g" numeric(6,2) NOT NULL,
+      "protein_per_100g" numeric(6,2) NOT NULL,
+      "carbs_per_100g" numeric(6,2) NOT NULL,
+      "fat_per_100g" numeric(6,2) NOT NULL,
+      "fiber_per_100g" numeric(6,2) NOT NULL DEFAULT 0,
+      "serving_size_g" numeric(6,2) NOT NULL DEFAULT 100,
+      "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE "planned_meals" (
+      "id" uuid PRIMARY KEY,
+      "diet_plan_id" uuid NOT NULL REFERENCES "diet_plans"("id") ON DELETE CASCADE,
+      "name" varchar(100) NOT NULL,
+      "order_index" integer NOT NULL DEFAULT 1,
+      "target_calories" integer,
+      "target_protein" numeric(6,2),
+      "target_carbs" numeric(6,2),
+      "target_fat" numeric(6,2),
+      "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE ("diet_plan_id", "order_index")
+    );
+    CREATE TABLE "planned_meal_items" (
+      "id" uuid PRIMARY KEY,
+      "planned_meal_id" uuid NOT NULL REFERENCES "planned_meals"("id") ON DELETE CASCADE,
+      "food_id" uuid REFERENCES "foods"("id") ON DELETE SET NULL,
+      "amount_grams" numeric(6,2) NOT NULL,
+      "calories" numeric(8,2) NOT NULL,
+      "protein" numeric(6,2) NOT NULL,
+      "carbs" numeric(6,2) NOT NULL,
+      "fat" numeric(6,2) NOT NULL,
+      "fiber" numeric(6,2) NOT NULL DEFAULT 0,
+      "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
   `);
   return dataSource;
 }
 
 export async function resetDietPlanData(dataSource: DataSource): Promise<void> {
+  await dataSource.query('DELETE FROM "planned_meal_items"');
+  await dataSource.query('DELETE FROM "planned_meals"');
+  await dataSource.query('DELETE FROM "foods"');
   await dataSource.query('DELETE FROM "diet_plans"');
   await clearIdentityData(dataSource);
   await dataSource.query(

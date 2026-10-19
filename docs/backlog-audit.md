@@ -27,7 +27,10 @@ Este lote reconcilia o PR com a baseline oficial, sem `synchronize`, sem migrati
 | #15 | BE-014 | IMPLEMENTADA | Login, JWT configurável, erro genérico e `GET /v1/auth/me` protegido. |
 | #16 | BE-016 | IMPLEMENTADA | Perfil corporal, medição atual/histórico e validações cobertos por E2E. |
 | #17 | BE-018 | VALIDAÇÃO | Contrato e exemplos estão publicados; falta aprovação humana do frontend. |
-| #18–#32 | BE-019 a BE-031 | PENDENTE | Providers, alimentos, planos, refeições e recálculo ainda não possuem módulos funcionais. |
+| #18–#26 | BE-019 a BE-026 | PENDENTE | Providers, alimentos e registro de consumo seguem no fluxo de Foods/refeições. |
+| #27 | BE-027 | IMPLEMENTADA | CRUD próprio e ativação transacional do plano estão cobertos por testes unitários e E2E. |
+| #28 | BE-028 | PARCIAL | CRUD de refeições/itens, snapshots, totais e recálculo após remoção implementados. Horário depende de decisão de produto e alteração do schema canônico, que hoje só possui `order_index`. |
+| #29–#32 | BE-029 a BE-031 | PENDENTE | Duplicação, geração, edição e recálculo posteriores dependem deste fluxo. |
 | #33 | BE-033 | IMPLEMENTADA | Mifflin–St Jeor, unidades, limites e casos de referência documentados/testados. |
 | #34 | BE-032 | PENDENTE | Snapshot nutricional diário ainda não é persistido; `user_stats` atual é de gamificação. |
 | #32, #35–#36 | BE-034 a BE-036 | BLOQUEADA | Contadores/progresso dependem de refeições e de uma definição de timezone do usuário. |
@@ -53,6 +56,7 @@ Este lote reconcilia o PR com a baseline oficial, sem `synchronize`, sem migrati
 4. #45/BE-045 declara dependência de BE-045 (auto-dependência); a dependência provável é o fluxo de eventos/feed anterior e deve ser corrigida no backlog.
 5. #50/BE-052 declara intervalo “BE-049 a BE-052”, incluindo a própria tarefa; deve apontar apenas para as implementações anteriores da loja.
 6. Os diretórios de Foods, Meals, Gamificação, Social e Recompensas existiam, mas continham somente `.gitkeep`; isso não comprova implementação.
+7. BE-028 cita horários, mas `planned_meals` não possui coluna de horário na baseline/DBML. Implementar esse campo requer decidir obrigatoriedade, precisão e relação com timezone antes de criar uma migration revisada.
 
 ## Ordem recomendada por dependência
 
