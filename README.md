@@ -59,6 +59,8 @@ npm run start:dev
 - Sessão atual: `GET /v1/auth/me`
 - Perfil nutricional atual: `GET /v1/users/me` (Bearer JWT)
 - Atualização/onboarding: `PATCH /v1/users/me` (Bearer JWT)
+- Planos alimentares: `POST/GET /v1/diet-plans` (Bearer JWT)
+- Detalhe/edição/ativação: `/v1/diet-plans/{id}` (Bearer JWT)
 
 As convenções HTTP estão documentadas em
 [`docs/api/conventions.md`](docs/api/conventions.md).
