@@ -18,7 +18,7 @@ export function configureApplication(
 
   app.enableCors({
     origin: options.corsOrigins ?? ['http://localhost:5173'],
-    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-Id'],
     exposedHeaders: ['X-Correlation-Id'],
   });

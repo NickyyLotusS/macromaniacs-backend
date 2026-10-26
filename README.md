@@ -62,6 +62,7 @@ npm run start:dev
 - Cadastro manual de alimento: `POST /v1/foods/manual` (Bearer JWT)
 - Planos alimentares: `POST/GET /v1/diet-plans` (Bearer JWT)
 - Detalhe/edição/ativação: `/v1/diet-plans/{id}` (Bearer JWT)
+- Refeições planejadas e itens: `/v1/diet-plans/{id}/meals` (Bearer JWT)
 
 As convenções HTTP estão documentadas em
 [`docs/api/conventions.md`](docs/api/conventions.md).

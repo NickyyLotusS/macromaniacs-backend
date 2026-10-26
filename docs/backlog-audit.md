@@ -22,7 +22,7 @@ BE-022 sobre ela. A falha do preview provisório no Railway foi registrada em
 | #6 | BE-007 | IMPLEMENTADA | JWT obrigatório/opcional, `CurrentUser`, papéis e ownership por parâmetro possuem guards, decorators, documentação e testes. |
 | #7 | BE-008 | IMPLEMENTADA | Contrato global de erro, 5xx genérico e correlation ID cobertos por E2E. |
 | #8 | BE-006 | IMPLEMENTADA | Scripts de qualidade, health test, E2E e checklist de PR disponíveis. |
-| #9 | BE-010 | PARCIAL | DTOs/metadados e validação existem; Swagger completo depende do primeiro endpoint paginado. |
+| #9 | BE-010 | IMPLEMENTADA | DTOs reutilizáveis, limites, padrões e metadados estão publicados no endpoint paginado de planos e no Swagger. |
 | #10 | BE-009 | IMPLEMENTADA | Correlation ID e log JSON de método, rota, status e duração, sem payload/headers sensíveis. |
 | #11 | BE-012 | IMPLEMENTADA | Schema de ambiente, falha rápida, `.env.example` e testes. |
 | #12 | BE-011 | IMPLEMENTADA | E2E usa PostgreSQL em memória isolado; integração real exige servidor explicitamente separado. |
@@ -35,7 +35,15 @@ BE-022 sobre ela. A falha do preview provisório no Railway foi registrada em
 | #19 | BE-021 | IMPLEMENTADA | Contrato comum de provider, unidade canônica por 100 g, auditoria e normalização decimal cobertos por testes na PR #81. |
 | #18 | BE-020 | PENDENTE | Fallback depende da conclusão dos adapters de BE-019. |
 | #22 | BE-022 | IMPLEMENTADA | Repositório TypeORM, cache local por barcode/identidade externa e cadastro manual autenticado, validado e auditável. |
-| #23–#32 | BE-023 a BE-031 | PENDENTE | Endpoints de consulta, planos, refeições e recálculo ainda dependem do fluxo de Foods. |
+| #26 | BE-023 | PENDENTE | Busca, detalhe e barcode dependem da conclusão dos adapters e fallback de BE-019/BE-020. |
+| #24 | BE-024 | PENDENTE | Fixtures dos três provedores dependem dos adapters de BE-019. |
+| #23 | BE-025 | PENDENTE | Registro de refeição consumida depende de BE-023. |
+| #25 | BE-026 | PENDENTE | Edição, remoção lógica e idempotência dependem de BE-025. |
+| #27 | BE-027 | IMPLEMENTADA | CRUD próprio e ativação transacional do plano estão cobertos por testes unitários e E2E. |
+| #28 | BE-028 | PARCIAL | CRUD de refeições/itens, snapshots, totais e recálculo após remoção implementados. Horário depende de decisão de produto e alteração do schema canônico, que hoje só possui `order_index`. |
+| #29 | BE-029 | PENDENTE | Check-in planejado/manual depende de BE-025 a BE-028. |
+| #30 | BE-030 | PENDENTE | E2E completo depende de BE-025 a BE-029. |
+| #31 | BE-031 | PENDENTE | Recálculo de progresso depende de BE-025/BE-026. |
 | #33 | BE-033 | IMPLEMENTADA | Mifflin–St Jeor, unidades, limites e casos de referência documentados/testados. |
 | #34 | BE-032 | PENDENTE | Snapshot nutricional diário ainda não é persistido; `user_stats` atual é de gamificação. |
 | #32, #35–#36 | BE-034 a BE-036 | BLOQUEADA | Contadores/progresso dependem de refeições e de uma definição de timezone do usuário. |
@@ -61,6 +69,7 @@ BE-022 sobre ela. A falha do preview provisório no Railway foi registrada em
 4. #45/BE-045 declara dependência de BE-045 (auto-dependência); a dependência provável é o fluxo de eventos/feed anterior e deve ser corrigida no backlog.
 5. #50/BE-052 declara intervalo “BE-049 a BE-052”, incluindo a própria tarefa; deve apontar apenas para as implementações anteriores da loja.
 6. Os diretórios de Foods, Meals, Gamificação, Social e Recompensas existiam, mas continham somente `.gitkeep`; isso não comprova implementação.
+7. BE-028 cita horários, mas `planned_meals` não possui coluna de horário na baseline/DBML. Implementar esse campo requer decidir obrigatoriedade, precisão e relação com timezone antes de criar uma migration revisada.
 
 ## Ordem recomendada por dependência
 
