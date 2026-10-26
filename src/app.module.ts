@@ -5,6 +5,7 @@ import { validate } from './shared/config/env.validation';
 import { DatabaseModule } from './integrations/database/database.module';
 import { FoodProductsModule } from './modules/food-products/food-products.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { DietPlansModule } from './modules/diet-plans/diet-plans.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { UsersModule } from './modules/users/users.module';
     DatabaseModule,
     FoodProductsModule,
     AuthModule,
+    DietPlansModule,
     UsersModule,
     HealthModule,
   ],

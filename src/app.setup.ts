@@ -56,6 +56,7 @@ function createSwaggerConfig() {
     .addTag('auth', 'Cadastro, login e sessão atual')
     .addTag('users', 'Perfil, medidas e métricas nutricionais')
     .addTag('foods', 'Catálogo, cache e consulta de alimentos')
+    .addTag('diet-plans', 'Planos alimentares e metas nutricionais')
     .build();
 }
 
