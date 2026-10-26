@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import {
-  DataSource,
-  QueryFailedError,
-  Repository,
-} from 'typeorm';
+import { DataSource, QueryFailedError, Repository } from 'typeorm';
 import { FoodSource } from '../entities/enums';
 import { Food } from '../entities/nutrition/food.entity';
 import { DuplicateFoodBarcodeError } from '../../../modules/food-products/domain/food-catalog';

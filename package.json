@@ -23,6 +23,7 @@
     "test:e2e": "npm test -- --runInBand test/ tests/e2e/",
     "test:integration": "RUN_DATABASE_TESTS=true npm test -- --runInBand tests/integration/database.spec.ts",
     "test:sql": "ts-node scripts/run-sql.ts",
+    "docs": "npm run docs:dbml",
     "db:verify": "ts-node scripts/verify-schema.ts",
     "db:drift": "ts-node scripts/schema-drift.ts",
     "docs:dbml": "ts-node scripts/verify-dbml.ts",
@@ -78,5 +79,9 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^6.0.2"
+  },
+  "overrides": {
+    "body-parser": "2.4.0",
+    "multer": "2.5.0"
   }
 }
