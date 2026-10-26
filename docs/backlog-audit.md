@@ -6,6 +6,10 @@ Auditoria feita sobre `main` (`be0e905`) e o único PR aberto, [#80](https://git
 
 Este lote reconcilia o PR com a baseline oficial, sem `synchronize`, sem migration automática e sem alteração destrutiva de schema. As classificações “implementada” abaixo consideram o código deste PR e só devem virar encerramento das issues depois de revisão/merge.
 
+Atualização incremental: a PR #81 implementa BE-021 e o lote seguinte implementa
+BE-022 sobre ela. A falha do preview provisório no Railway foi registrada em
+#82 para Infra e não bloqueia o desenvolvimento funcional.
+
 ## Classificação
 
 | Issue | Tarefa | Estado | Evidência ou pendência |
@@ -27,7 +31,11 @@ Este lote reconcilia o PR com a baseline oficial, sem `synchronize`, sem migrati
 | #15 | BE-014 | IMPLEMENTADA | Login, JWT configurável, erro genérico e `GET /v1/auth/me` protegido. |
 | #16 | BE-016 | IMPLEMENTADA | Perfil corporal, medição atual/histórico e validações cobertos por E2E. |
 | #17 | BE-018 | VALIDAÇÃO | Contrato e exemplos estão publicados; falta aprovação humana do frontend. |
-| #18–#32 | BE-019 a BE-031 | PENDENTE | Providers, alimentos, planos, refeições e recálculo ainda não possuem módulos funcionais. |
+| #21 | BE-019 | BLOQUEADA | Open Food Facts e USDA possuem contratos oficiais; falta contrato público/estável da TBCA e credencial USDA de Infra para concluir os três adapters sem scraping ou segredo no repositório. |
+| #19 | BE-021 | IMPLEMENTADA | Contrato comum de provider, unidade canônica por 100 g, auditoria e normalização decimal cobertos por testes na PR #81. |
+| #18 | BE-020 | PENDENTE | Fallback depende da conclusão dos adapters de BE-019. |
+| #22 | BE-022 | IMPLEMENTADA | Repositório TypeORM, cache local por barcode/identidade externa e cadastro manual autenticado, validado e auditável. |
+| #23–#32 | BE-023 a BE-031 | PENDENTE | Endpoints de consulta, planos, refeições e recálculo ainda dependem do fluxo de Foods. |
 | #33 | BE-033 | IMPLEMENTADA | Mifflin–St Jeor, unidades, limites e casos de referência documentados/testados. |
 | #34 | BE-032 | PENDENTE | Snapshot nutricional diário ainda não é persistido; `user_stats` atual é de gamificação. |
 | #32, #35–#36 | BE-034 a BE-036 | BLOQUEADA | Contadores/progresso dependem de refeições e de uma definição de timezone do usuário. |
@@ -57,7 +65,7 @@ Este lote reconcilia o PR com a baseline oficial, sem `synchronize`, sem migrati
 ## Ordem recomendada por dependência
 
 1. Mesclar este lote; concluir BE-007, expor paginação no primeiro recurso e decidir as duas lacunas de BE-013.
-2. Foods: BE-019 → BE-021 → BE-020 → BE-022 → BE-023 → BE-024.
+2. Foods: BE-021 e BE-022 concluídas em PRs empilhadas; concluir BE-019 → BE-020 → BE-023 → BE-024 quando os contratos externos estiverem disponíveis.
 3. Refeições/planos: BE-025 → BE-026 e BE-027 → BE-028 → BE-029 → BE-030.
 4. Progresso: BE-031 → decisão de schema para BE-032 → decisão de timezone → BE-034 → BE-035 → BE-036.
 5. Gamificação: BE-037/BE-039 → decisão de BE-040 → BE-038/BE-041 → BE-042.
@@ -72,6 +80,7 @@ Este lote reconcilia o PR com a baseline oficial, sem `synchronize`, sem migrati
 - Schema separado para snapshots nutricionais (BE-032).
 - Timezone do usuário (BE-034), regras de pontuação (BE-040) e política de rate limiting (BE-061).
 - Staging, credenciais de provedores, massa representativa e resultados de carga para as etapas de validação.
+- Infra deve inspecionar os logs/variáveis do preview provisório do Railway em #82; isso não bloqueia código nem autoriza alterar o ambiente externo.
 
 ## Segurança de dependências
 
