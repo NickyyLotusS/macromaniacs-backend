@@ -31,6 +31,128 @@ TypeORM é o único ORM ativo. A arquitetura inicialmente migrada com Prisma foi
 Use Node compatível com o toolchain (22.22.3+ na linha 22, ou 24.15.0+ na linha 24), npm e Docker. Configure `.env` local usando `.env.example` sem sobrescrever credenciais/URLs existentes. O Compose canônico é `infra/docker/compose.yaml`: PostgreSQL 15, `macromaniacs_postgres`, host `localhost:5433`, banco `macromaniacs_db`, usuário `postgres` e volume externo preservado `macromaniacs-backend_pgdata`.
 
 ```bash
+docker compose -f infra/docker/compose.yaml up -d
+```
+
+Crie `.env` a partir de `.env.example` e substitua o valor de `JWT_SECRET`
+por um segredo local aleatório com pelo menos 32 caracteres.
+
+Somente em um banco novo e vazio, execute a baseline:
+
+```bash
+npm run migration:run
+```
+
+Inicie a aplicação:
+
+```bash
+npm run start:dev
+```
+
+## API e Swagger
+
+- Health: `GET http://localhost:3000/health`
+- Swagger em desenvolvimento: `http://localhost:3000/docs`
+- OpenAPI JSON em desenvolvimento: `http://localhost:3000/docs-json`
+- Cadastro: `POST /v1/auth/register`
+- Login: `POST /v1/auth/login`
+- Sessão atual: `GET /v1/auth/me`
+- Perfil nutricional atual: `GET /v1/users/me` (Bearer JWT)
+- Atualização/onboarding: `PATCH /v1/users/me` (Bearer JWT)
+- Cadastro manual de alimento: `POST /v1/foods/manual` (Bearer JWT)
+- Planos alimentares: `POST/GET /v1/diet-plans` (Bearer JWT)
+- Detalhe/edição/ativação: `/v1/diet-plans/{id}` (Bearer JWT)
+- Refeições planejadas e itens: `/v1/diet-plans/{id}/meals` (Bearer JWT)
+
+As convenções HTTP estão documentadas em
+[`docs/api/conventions.md`](docs/api/conventions.md).
+
+## Integração com React
+
+O backend permite por padrão a origem do Vite em `http://localhost:5173`.
+Para outro endereço, configure uma ou mais origens separadas por vírgula:
+
+```env
+CORS_ORIGINS=http://localhost:5173,https://app.example.com
+```
+
+No frontend, configure:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+Exemplos de payload, tipos e chamadas `fetch` estão em
+[`docs/api/react-integration.md`](docs/api/react-integration.md).
+
+## Perfil e cálculo nutricional
+
+O servidor é a fonte de verdade para `onboardingCompleted` e para os valores
+derivados. O cliente não envia esses campos. Ao atualizar peso, altura, data de
+nascimento, sexo biológico, objetivo, atividade ou meta, a transação registra a
+medida corporal e recalcula as métricas retornadas. A persistência de snapshots
+diários permanece separada no backlog (BE-032).
+
+- TMB: fórmula de Mifflin-St Jeor, em kcal/dia.
+- TDEE: TMB multiplicada pelo fator de atividade (`1.2`, `1.375`, `1.55`,
+  `1.725` ou `1.9`).
+- Emagrecimento: déficit padrão de 10%, limitado a 500 kcal/dia.
+- Ganho de massa: superávit padrão de 10%, limitado a 300 kcal/dia.
+- Manutenção, recomposição, força e performance: meta igual ao TDEE neste MVP.
+- Quando peso-meta e data-meta são coerentes com o objetivo, o ajuste considera
+  `7.700 kcal/kg` dividido pelos dias disponíveis, respeitando os mesmos limites.
+- A meta nunca fica abaixo da TMB nem acima de TDEE + 300 kcal/dia.
+
+Os dados mínimos que completam o onboarding são nome, nascimento, sexo
+biológico, objetivo, atividade e uma medida atual de altura e peso. Peso-meta e
+data-meta são opcionais, mas devem ser enviados juntos.
+
+## Testes
+
+Testes unitários:
+
+```bash
+npm test -- --runInBand
+```
+
+Testes E2E de autenticação usam um PostgreSQL em memória isolado e criam apenas
+o schema de teste necessário para os cenários:
+
+```bash
+npm run test:e2e
+```
+
+Para validar manualmente contra PostgreSQL real, existe também um serviço
+efêmero separado na porta 55433:
+
+```bash
+docker compose -f infra/docker/compose.yaml --profile test up -d postgres-test
+```
+
+Ele usa `tmpfs` e não compartilha o volume do banco de desenvolvimento.
+
+## Deploy
+
+O backend aceita `APP_PORT` no desenvolvimento e a variável padrão `PORT`
+fornecida por plataformas de hospedagem. `APP_PORT` tem precedência quando as
+duas estiverem definidas.
+
+Fluxo esperado no Railway:
+
+```text
+Build: npm ci && npm run build
+Migration (etapa separada e aprovada): npm run migration:run:prod
+Start: npm run start:prod
+Health check: /health
+```
+
+Migrations nunca são executadas automaticamente na inicialização. Configure no
+provedor `DATABASE_URL`, `APP_ENV`, `JWT_SECRET`, `JWT_EXPIRES_IN` e
+`CORS_ORIGINS`. Segredos e URLs reais de banco nunca devem ser commitados.
+
+## Operação do banco legado
+
+```bash
 npm ci
 npm run db:local
 # APENAS quando DATABASE_URL aponta para um banco vazio:
