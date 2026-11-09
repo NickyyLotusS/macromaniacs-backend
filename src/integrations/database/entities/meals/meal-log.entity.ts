@@ -24,6 +24,14 @@ import type { FeedPost } from '../social/feed-post.entity';
   'meal_logs_photo_url_check',
   '((photo_url IS NULL) OR (length(btrim((photo_url)::text)) > 0))',
 )
+@Check(
+  'meal_logs_idempotency_key_not_blank_check',
+  '((idempotency_key IS NULL) OR (length(btrim((idempotency_key)::text)) > 0))',
+)
+@Check(
+  'meal_logs_timezone_not_blank_check',
+  '(length(btrim((timezone)::text)) > 0)',
+)
 @Index('meal_logs_user_id_consumed_at_idx', ['userId', 'consumedAt'])
 @Index('meal_logs_planned_meal_id_idx', ['plannedMealId'])
 @Index('meal_logs_user_id_idempotency_key_key', ['userId', 'idempotencyKey'], {

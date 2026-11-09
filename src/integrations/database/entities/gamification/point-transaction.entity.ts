@@ -19,6 +19,10 @@ import type { User } from '../identity/user.entity';
   'point_transactions_metadata_check',
   "(jsonb_typeof(metadata) = 'object'::text)",
 )
+@Check(
+  'point_transactions_idempotency_key_not_blank_check',
+  '((idempotency_key IS NULL) OR (length(btrim((idempotency_key)::text)) > 0))',
+)
 @Index('point_transactions_user_id_created_at_idx', { synchronize: false })
 @Index(
   'point_transactions_user_id_idempotency_key_key',

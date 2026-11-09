@@ -52,19 +52,22 @@ export async function baselinePreflight(source: DataSource): Promise<boolean> {
   const applied = await source.query(
     'SELECT name, timestamp FROM public.migrations ORDER BY id',
   );
-  const known = new Map([
-    [BASELINE_NAME, '1789430400000'],
-    [COMPLETION_NAME, '1794096000000'],
-  ]);
+  const known = [
+    { name: BASELINE_NAME, timestamp: '1789430400000' },
+    { name: COMPLETION_NAME, timestamp: '1794096000000' },
+  ];
   if (
-    applied.some(
-      (row: { name: string; timestamp: string }) =>
-        known.get(row.name) !== String(row.timestamp),
-    ) ||
-    applied.length > known.size
+    applied.some((row: { name: string; timestamp: string }, index: number) => {
+      const expected = known[index];
+      return (
+        !expected ||
+        expected.name !== row.name ||
+        expected.timestamp !== String(row.timestamp)
+      );
+    })
   )
     throw new Error(
       'Migrations TypeORM desconhecidas: interrompa a transição.',
     );
-  return applied.length === 1;
+  return applied.length > 0;
 }
