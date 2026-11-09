@@ -71,6 +71,8 @@ GitHub issue numbers are intentionally kept separate from BE task codes.
 10. Added deterministic PostgreSQL performance evidence (2,000 snapshots plus 5,000 meals, posts, ledger entries and foods), hot-path `EXPLAIN ANALYZE`, index assertions and an opt-in read-only staging smoke harness.
 11. Complete local gate passed: format, lint, typecheck, build, DBML, audit and `23 suites / 127 tests`; coverage was 81.81% statements, 68.45% branches, 75.67% functions and 82.54% lines.
 12. Next: commit/push, inspect real PostgreSQL CI evidence, fix any platform-specific drift, then prepare the final delivery report and PR.
+13. Opened final PR #88 against `main`; GitHub reports it mergeable.
+14. First PR CI iteration: `quality` passed; `postgres-15` exposed an unterminated PL/pgSQL dollar quote before schema creation. Fixed the migration delimiter in `5faab65`; no test was mocked or relaxed.
 
 ## External blockers (do not misreport as completed)
 
