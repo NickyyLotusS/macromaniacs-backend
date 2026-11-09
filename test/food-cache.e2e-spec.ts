@@ -1,6 +1,7 @@
 import './setup-env';
 import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { jest } from '@jest/globals';
 import { Test } from '@nestjs/testing';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import request from 'supertest';
@@ -13,6 +14,7 @@ import type {
   ProviderFood,
 } from '../src/modules/food-products/domain/food-provider';
 import { FoodCacheService } from '../src/modules/food-products/food-cache.service';
+import { FOOD_PROVIDERS } from '../src/modules/food-products/food-provider.tokens';
 import {
   clearFoodData,
   createFoodTestDataSource,
@@ -22,6 +24,11 @@ describe('Food cache and manual catalog (e2e)', () => {
   let app: INestApplication;
   let database: DataSource;
   let accessToken: string;
+  const lookupProvider: jest.Mocked<FoodProvider> = {
+    source: FoodSource.OPEN_FOOD_FACTS,
+    search: jest.fn(),
+    findByBarcode: jest.fn(),
+  };
 
   const manualFood = {
     name: 'Arroz integral cozido',
@@ -39,6 +46,8 @@ describe('Food cache and manual catalog (e2e)', () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(getDataSourceToken())
       .useValue(database)
+      .overrideProvider(FOOD_PROVIDERS)
+      .useValue([lookupProvider])
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -51,6 +60,8 @@ describe('Food cache and manual catalog (e2e)', () => {
 
   beforeEach(async () => {
     await clearFoodData(database);
+    lookupProvider.search.mockReset().mockResolvedValue([]);
+    lookupProvider.findByBarcode.mockReset().mockResolvedValue(null);
   });
 
   afterAll(async () => {
@@ -172,5 +183,72 @@ describe('Food cache and manual catalog (e2e)', () => {
       'SELECT count(*)::int AS count FROM "foods"',
     )) as Array<{ count: number }>;
     expect(count).toBe(1);
+  });
+
+  it('busca, detalha e consulta barcode no catálogo local', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/v1/foods/manual')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(manualFood)
+      .expect(201);
+
+    const search = await request(app.getHttpServer())
+      .get('/v1/foods')
+      .query({ q: 'arroz', external: false })
+      .expect(200);
+    expect(search.body).toMatchObject({
+      items: [{ id: created.body.id, source: FoodSource.MANUAL }],
+      meta: { page: 1, limit: 20, totalItems: 1, totalPages: 1 },
+    });
+
+    await request(app.getHttpServer())
+      .get(`/v1/foods/${created.body.id}`)
+      .expect(200)
+      .expect(({ body }) => expect(body.name).toBe(manualFood.name));
+    await request(app.getHttpServer())
+      .get(`/v1/foods/barcode/${manualFood.barcode}`)
+      .expect(200)
+      .expect(({ body }) => expect(body.id).toBe(created.body.id));
+    expect(lookupProvider.findByBarcode).not.toHaveBeenCalled();
+  });
+
+  it('usa provedor simulado e persiste resultado normalizado para fallback local', async () => {
+    lookupProvider.search.mockResolvedValue([
+      {
+        externalId: 'off-search-1',
+        name: 'Aveia em flocos',
+        barcode: '7890000000001',
+        basisGrams: '100',
+        servingSizeGrams: '30',
+        nutrients: {
+          caloriesKcal: '380',
+          proteinGrams: '13.3',
+          carbohydrateGrams: '67.7',
+          fatGrams: '6.7',
+          fiberGrams: '10.6',
+        },
+        retrievedAt: new Date('2026-11-08T12:00:00.000Z'),
+      },
+    ]);
+
+    const external = await request(app.getHttpServer())
+      .get('/v1/foods')
+      .query({ q: 'aveia' })
+      .expect(200);
+    expect(external.body.items).toMatchObject([
+      {
+        name: 'Aveia em flocos',
+        source: FoodSource.OPEN_FOOD_FACTS,
+        caloriesPer100g: 380,
+      },
+    ]);
+    expect(lookupProvider.search).toHaveBeenCalledTimes(1);
+
+    const local = await request(app.getHttpServer())
+      .get('/v1/foods')
+      .query({ q: 'aveia', external: false })
+      .expect(200);
+    expect(local.body.meta.totalItems).toBe(1);
+    expect(lookupProvider.search).toHaveBeenCalledTimes(1);
   });
 });

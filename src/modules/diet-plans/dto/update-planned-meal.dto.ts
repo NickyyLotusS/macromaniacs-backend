@@ -6,6 +6,7 @@ import {
   IsString,
   Max,
   MaxLength,
+  Matches,
   Min,
   MinLength,
 } from 'class-validator';
@@ -32,6 +33,12 @@ export class UpdatePlannedMealDto {
   @Min(1)
   @Max(POSTGRES_INTEGER_MAX)
   orderIndex?: number;
+
+  @ApiPropertyOptional({ example: '10:30', nullable: true })
+  @Transform(trim)
+  @IsOptional()
+  @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/)
+  scheduledTime?: string | null;
 
   @ApiPropertyOptional({ example: 400, nullable: true, minimum: 0 })
   @Type(() => Number)

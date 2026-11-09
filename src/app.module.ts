@@ -7,6 +7,11 @@ import { FoodProductsModule } from './modules/food-products/food-products.module
 import { AuthModule } from './modules/auth/auth.module';
 import { DietPlansModule } from './modules/diet-plans/diet-plans.module';
 import { UsersModule } from './modules/users/users.module';
+import { ProgressModule } from './modules/progress/progress.module';
+import { MealsModule } from './modules/meals/meals.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
+import { RewardsModule } from './modules/rewards/rewards.module';
+import { SocialModule } from './modules/social/social.module';
 
 @Module({
   imports: [
@@ -20,6 +25,11 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     DietPlansModule,
     UsersModule,
+    ProgressModule,
+    MealsModule,
+    GamificationModule,
+    RewardsModule,
+    SocialModule,
     HealthModule,
   ],
 })

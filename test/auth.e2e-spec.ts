@@ -83,7 +83,10 @@ describe('Authentication MVP (e2e)', () => {
       email: 'user@example.com',
       username: 'user',
       displayName: 'user',
-      profile: null,
+      profile: {
+        id: expect.any(String),
+        onboardingCompleted: false,
+      },
     });
     expect(response.body.password).toBeUndefined();
     expect(response.body.passwordHash).toBeUndefined();

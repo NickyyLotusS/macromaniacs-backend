@@ -106,4 +106,12 @@ export class UpdateMyProfileDto {
   @IsString()
   @MaxLength(1000)
   dietaryRestrictions?: string | null;
+
+  @ApiPropertyOptional({ example: 'America/Sao_Paulo', maxLength: 64 })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(64)
+  timezone?: string;
 }

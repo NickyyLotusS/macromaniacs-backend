@@ -41,6 +41,7 @@ export async function createDietPlanTestDataSource(): Promise<DataSource> {
       "fat_per_100g" numeric(6,2) NOT NULL,
       "fiber_per_100g" numeric(6,2) NOT NULL DEFAULT 0,
       "serving_size_g" numeric(6,2) NOT NULL DEFAULT 100,
+      "retrieved_at" timestamptz,
       "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -49,6 +50,7 @@ export async function createDietPlanTestDataSource(): Promise<DataSource> {
       "diet_plan_id" uuid NOT NULL REFERENCES "diet_plans"("id") ON DELETE CASCADE,
       "name" varchar(100) NOT NULL,
       "order_index" integer NOT NULL DEFAULT 1,
+      "scheduled_time" time,
       "target_calories" integer,
       "target_protein" numeric(6,2),
       "target_carbs" numeric(6,2),

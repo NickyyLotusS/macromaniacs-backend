@@ -1,5 +1,29 @@
 # Auditoria do backlog — 18/10/2026
 
+## Atualização de conclusão — 09/11/2026
+
+A classificação histórica abaixo explica o estado de 18/10. A branch
+`integration/backend-completion-2026-11` supera aquele recorte: adiciona
+aceite versionado de termos e perfil inicial, providers resilientes,
+consumo/check-in, snapshots de progresso, gamificação/outbox/ledger, grupos,
+feed/ranking, recompensas atômicas, segurança, CI e documentação.
+
+O inventário atual por issue e sua evidência está em
+[`reports/backend-completion-tracker.md`](reports/backend-completion-tracker.md).
+As dependências autorreferentes de #45/BE-045 e #50/BE-052 são tratadas como
+erros do backlog: a implementação depende, respectivamente, do fluxo de eventos
+de refeição/social e das demais capacidades da loja. A branch não altera os
+textos originais das issues antes de existir commit/PR revisável.
+
+Permanecem externos: aprovação formal do frontend (#17), uso real de USDA/TBCA
+com contrato/credencial adequados (#21), staging/carga externa, ratificação das
+regras propostas de pontos e limites, Railway (#82) e as atividades humanas
+#73–#75. Nenhum desses itens é declarado concluído pela existência de código.
+
+O gate local desta atualização aprovou 23 suítes/127 testes e zero
+vulnerabilidades de produção. PostgreSQL 15 real, migrations, locks,
+concorrência e planos de performance aguardam o job da CI antes do status final.
+
 ## Escopo e evidências
 
 Auditoria feita sobre `main` (`be0e905`) e o único PR aberto, [#80](https://github.com/NickyyLotusS/macromaniacs-backend/pull/80). A `main` continha a fundação NestJS, health/readiness e a integração TypeORM definitiva. Os demais diretórios de negócio eram placeholders. O PR #80 continha autenticação e onboarding, mas partia de antes da integração definitiva do banco, duplicava entidades e migrations e não era mesclável.

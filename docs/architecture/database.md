@@ -11,11 +11,15 @@ Este documento descreve o banco relacional do escopo atual. Ele deve ser atualiz
 - Instantes em `TIMESTAMPTZ`; datas civis em `DATE`.
 - Valores monetários da loja são pontos inteiros, não moeda fiduciária.
 - `created_at` tem default `CURRENT_TIMESTAMP` no banco; `@CreateDateColumn` e `@UpdateDateColumn` preservam a auditoria. SQL externo deve atualizar `updated_at` explicitamente; não foi criado trigger novo.
-- Os 50 `CHECK`s estão na baseline SQL e também em `@Check` com seus nomes originais. Índices DESC ficam em SQL e são declarados com `synchronize: false` individualmente, sem desabilitar a comparação das entidades.
+- A baseline preserva 50 `CHECK`s; a migration aditiva eleva o contrato completo a 60. Todos estão representados em `@Check` ou no overlay versionado do contrato. Índices DESC ficam em SQL e são declarados com `synchronize: false` individualmente, sem desabilitar a comparação das entidades.
 - `NUMERIC` é lido/escrito como `string` exata; não converter silenciosamente para `number`. Cálculos nutricionais exigem aritmética decimal com arredondamento explícito. `DATE` usa string `YYYY-MM-DD`; `TIMESTAMPTZ` usa `Date`.
 - `DatabaseSource` mantém a representação física de `CURRENT_TIMESTAMP` na comparação do driver PostgreSQL. TypeORM está fixado e a compatibilidade é coberta pelo teste de zero drift; qualquer atualização do ORM deve repetir essa verificação.
 
-O schema preserva exatamente 23 entidades/tabelas de domínio. Funcionalidades citadas em versões antigas da documentação — refresh tokens, papel global de usuário, metas de hidratação, sódio, tipo fixo de refeição, posts globais e quests semanais — não fazem parte do escopo atual.
+O schema preserva as 23 tabelas da baseline e adiciona
+`user_terms_acceptances`, `daily_nutrition_snapshots` e `outbox_events`,
+totalizando 26. Funcionalidades citadas em versões antigas da documentação —
+refresh tokens, papel global de usuário, metas de hidratação, sódio, tipo fixo
+de refeição, posts globais e quests semanais — não fazem parte do escopo atual.
 
 ## Enums
 

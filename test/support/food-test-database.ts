@@ -16,6 +16,7 @@ export async function createFoodTestDataSource(): Promise<DataSource> {
       "fat_per_100g" numeric(6,2) NOT NULL,
       "fiber_per_100g" numeric(6,2) NOT NULL DEFAULT 0,
       "serving_size_g" numeric(6,2) NOT NULL DEFAULT 100,
+      "retrieved_at" timestamptz,
       "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
       CONSTRAINT "foods_source_external_id_key" UNIQUE ("source", "external_id"),

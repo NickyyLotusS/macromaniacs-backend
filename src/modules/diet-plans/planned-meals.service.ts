@@ -73,6 +73,7 @@ export class PlannedMealsService {
       dietPlanId: planId,
       name: dto.name,
       orderIndex: dto.orderIndex,
+      scheduledTime: dto.scheduledTime ?? null,
       targetCalories: dto.targetCalories ?? null,
       targetProtein: this.optionalDecimal(dto.targetProtein),
       targetCarbs: this.optionalDecimal(dto.targetCarbs),
@@ -102,6 +103,7 @@ export class PlannedMealsService {
       meal.orderIndex = dto.orderIndex;
     }
     if (dto.name !== undefined) meal.name = dto.name;
+    if (dto.scheduledTime !== undefined) meal.scheduledTime = dto.scheduledTime;
     if (dto.targetCalories !== undefined)
       meal.targetCalories = dto.targetCalories;
     if (dto.targetProtein !== undefined)

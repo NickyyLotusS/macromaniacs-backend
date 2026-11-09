@@ -47,6 +47,9 @@ export class Group {
   @Column({ name: 'invite_code', type: 'varchar', length: 8 })
   inviteCode!: string;
 
+  @Column({ name: 'is_private', type: 'boolean', default: true })
+  isPrivate!: boolean;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',

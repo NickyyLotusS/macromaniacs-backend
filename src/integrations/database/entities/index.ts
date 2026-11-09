@@ -21,6 +21,9 @@ import { DailyMission } from './catalogs/daily-mission.entity';
 import { UserDailyMission } from './gamification/user-daily-mission.entity';
 import { CosmeticItem } from './catalogs/cosmetic-item.entity';
 import { UserCosmetic } from './gamification/user-cosmetic.entity';
+import { UserTermsAcceptance } from './identity/user-terms-acceptance.entity';
+import { DailyNutritionSnapshot } from './nutrition/daily-nutrition-snapshot.entity';
+import { OutboxEvent } from './events/outbox-event.entity';
 
 export const DATABASE_ENTITIES = [
   User,
@@ -46,4 +49,7 @@ export const DATABASE_ENTITIES = [
   UserDailyMission,
   CosmeticItem,
   UserCosmetic,
+  UserTermsAcceptance,
+  DailyNutritionSnapshot,
+  OutboxEvent,
 ];

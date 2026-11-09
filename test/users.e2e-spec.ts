@@ -62,7 +62,13 @@ describe('Users profile and onboarding (e2e)', () => {
       .useValue(database)
       .compile();
     app = moduleRef.createNestApplication();
-    configureApplication(app);
+    configureApplication(app, {
+      rateLimit: {
+        windowMs: 60_000,
+        maxRequests: 1_000,
+        loginMaxRequests: 100,
+      },
+    });
     await app.init();
   });
 

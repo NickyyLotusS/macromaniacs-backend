@@ -95,6 +95,9 @@ export class Food {
   })
   servingSizeG!: string;
 
+  @Column({ name: 'retrieved_at', type: 'timestamptz', nullable: true })
+  retrievedAt!: Date | null;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',

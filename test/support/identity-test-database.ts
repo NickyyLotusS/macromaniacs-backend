@@ -34,16 +34,36 @@ export async function createIdentityTestDataSource(): Promise<DataSource> {
     );
     CREATE TABLE "user_profiles" (
       "user_id" uuid PRIMARY KEY REFERENCES "users"("id") ON DELETE CASCADE,
-      "birth_date" date NOT NULL,
-      "biological_sex" text NOT NULL,
-      "height_cm" numeric(5,2) NOT NULL,
-      "current_weight_kg" numeric(5,2) NOT NULL,
+      "birth_date" date,
+      "biological_sex" text,
+      "height_cm" numeric(5,2),
+      "current_weight_kg" numeric(5,2),
       "target_weight_kg" numeric(5,2),
       "target_date" date,
       "dietary_restrictions_note" text,
-      "goal" text NOT NULL,
-      "activity_level" text NOT NULL,
+      "goal" text,
+      "activity_level" text,
+      "timezone" varchar(64) NOT NULL DEFAULT 'UTC',
+      "onboarding_completed_at" timestamptz,
       "avatar_config" jsonb NOT NULL DEFAULT '{}',
+      "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE "user_terms_acceptances" (
+      "id" uuid PRIMARY KEY,
+      "user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+      "terms_version" varchar(64) NOT NULL,
+      "accepted_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE ("user_id", "terms_version")
+    );
+    CREATE TABLE "user_stats" (
+      "user_id" uuid PRIMARY KEY REFERENCES "users"("id") ON DELETE CASCADE,
+      "current_streak" integer NOT NULL DEFAULT 0,
+      "best_streak" integer NOT NULL DEFAULT 0,
+      "total_points" integer NOT NULL DEFAULT 0,
+      "last_activity_at" timestamptz,
+      "last_activity_date" date,
+      "timezone" varchar(64) NOT NULL DEFAULT 'UTC',
       "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updated_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -59,6 +79,8 @@ export async function createIdentityTestDataSource(): Promise<DataSource> {
 
 export async function clearIdentityData(dataSource: DataSource): Promise<void> {
   await dataSource.query('DELETE FROM "body_measurements"');
+  await dataSource.query('DELETE FROM "user_terms_acceptances"');
+  await dataSource.query('DELETE FROM "user_stats"');
   await dataSource.query('DELETE FROM "user_profiles"');
   await dataSource.query('DELETE FROM "users"');
 }

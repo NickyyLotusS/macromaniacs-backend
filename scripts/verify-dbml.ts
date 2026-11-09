@@ -50,6 +50,7 @@ for (const table of schema.tables) {
         .replace(/^character varying/, 'varchar')
         .replace(/^numeric/, 'decimal')
         .replace(/^timestamp with time zone$/, 'timestamptz')
+        .replace(/^time without time zone$/, 'time')
         .replace(/^integer$/, 'int')
         .replace(/"/g, ''),
       not_null: column.not_null,
@@ -68,10 +69,11 @@ for (const table of schema.tables) {
   const expectedIndices = expected.indices
     .filter((index) => index.table_name === table.name)
     .map((index) => {
-      const columns = String(index.definition)
-        .match(/ USING btree \((.*)\)$/)![1]
-        .split(',')
-        .map((entry) => entry.trim());
+      const match = String(index.definition).match(
+        / USING btree \(([^)]+)\)(?: WHERE (.+))?$/,
+      )!;
+      const columns = match[1].split(',').map((entry) => entry.trim());
+      const predicate = match[2];
       return {
         name: index.name,
         is_primary: index.is_primary,
@@ -79,7 +81,7 @@ for (const table of schema.tables) {
         columns: columns.map((entry) =>
           entry.replace(/ (ASC|DESC)$/, '').replace(/"/g, ''),
         ),
-        note: `SQL: ${columns.map((entry) => (/ (ASC|DESC)$/.test(entry) ? entry : entry + ' ASC')).join(', ')}`,
+        note: `SQL: ${columns.map((entry) => (/ (ASC|DESC)$/.test(entry) ? entry : entry + ' ASC')).join(', ')}${predicate ? `; WHERE ${predicate}` : ''}`,
       };
     });
   same(
@@ -124,5 +126,5 @@ const fks = expected.constraints
   .sort((a, b) => String(a.name).localeCompare(String(b.name)));
 same(refs, fks, 'FKs/políticas de exclusão e atualização');
 console.log(
-  'DBML validado: 23 tabelas, 11 enums, 55 índices/PKs, 29 FKs e 50 CHECKs iguais ao contrato PostgreSQL.',
+  `DBML validado: ${expected.tables.length} tabelas, ${expected.enums.length} enums, ${expected.indices.length} índices/PKs, ${expected.constraints.filter((entry) => entry.type === 'f').length} FKs e ${expected.constraints.filter((entry) => entry.type === 'c').length} CHECKs iguais ao contrato PostgreSQL.`,
 );

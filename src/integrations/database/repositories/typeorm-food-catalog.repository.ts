@@ -29,6 +29,28 @@ export class TypeOrmFoodCatalogRepository implements FoodCatalogRepository {
     return this.toRecordOrNull(await this.foods.findOneBy({ barcode }));
   }
 
+  async findById(id: string): Promise<FoodRecord | null> {
+    return this.toRecordOrNull(await this.foods.findOneBy({ id }));
+  }
+
+  async search(
+    query: string,
+    page: number,
+    limit: number,
+  ): Promise<{ items: FoodRecord[]; total: number }> {
+    const builder = this.foods
+      .createQueryBuilder('food')
+      .where('LOWER(food.name) LIKE :query', {
+        query: `%${query.trim().toLowerCase()}%`,
+      })
+      .orderBy('food.name', 'ASC')
+      .addOrderBy('food.id', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+    const [items, total] = await builder.getManyAndCount();
+    return { items: items.map((item) => this.toRecord(item)), total };
+  }
+
   async findByExternalIdentity(
     source: FoodProviderSource,
     externalId: string,
@@ -105,6 +127,7 @@ export class TypeOrmFoodCatalogRepository implements FoodCatalogRepository {
     entity.fatPer100g = input.fatPer100g;
     entity.fiberPer100g = input.fiberPer100g;
     entity.servingSizeG = input.servingSizeG;
+    entity.retrievedAt = input.retrievedAt;
   }
 
   private toRecordOrNull(entity: Food | null): FoodRecord | null {
@@ -124,6 +147,7 @@ export class TypeOrmFoodCatalogRepository implements FoodCatalogRepository {
       fatPer100g: String(entity.fatPer100g),
       fiberPer100g: String(entity.fiberPer100g),
       servingSizeG: String(entity.servingSizeG),
+      retrievedAt: entity.retrievedAt,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

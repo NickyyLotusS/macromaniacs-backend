@@ -6,6 +6,7 @@ import {
   IsString,
   Max,
   MaxLength,
+  Matches,
   Min,
   MinLength,
 } from 'class-validator';
@@ -30,6 +31,17 @@ export class CreatePlannedMealDto {
   @Min(1)
   @Max(POSTGRES_INTEGER_MAX)
   orderIndex!: number;
+
+  @ApiPropertyOptional({
+    example: '08:30',
+    nullable: true,
+    description:
+      'Horário civil local HH:mm; o fuso IANA do perfil define a interpretação.',
+  })
+  @Transform(trim)
+  @IsOptional()
+  @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/)
+  scheduledTime?: string | null;
 
   @ApiPropertyOptional({ example: 500, nullable: true, minimum: 0 })
   @Type(() => Number)

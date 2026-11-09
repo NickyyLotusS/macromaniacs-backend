@@ -34,19 +34,23 @@ Resultados externos válidos são normalizados e persistidos pela identidade
 `source + externalId`; consultas repetidas devolvem o mesmo registro local. A
 constraint de barcode impede duplicação entre fontes, inclusive sob corrida.
 
-`createdAt` e `updatedAt` são a trilha de auditoria do cache local. O instante
-`retrievedAt` permanece no limite da integração para políticas futuras de
-expiração; não existe coluna canônica para persistir esse instante e esta entrega
-não altera o schema.
+`createdAt`, `updatedAt` e `retrievedAt` são a trilha de auditoria do cache
+local. A migration aditiva persiste o instante de obtenção externa.
 
 Cadastro manual usa `POST /v1/foods/manual`, exige JWT e grava `source=MANUAL`
 com `externalId=null`. Nome, barcode, nutrientes e porção são validados antes da
 persistência; os limites respeitam `NUMERIC(6,2)` e barcode duplicado retorna
 conflito controlado.
 
-## Próximos adapters
+## Adapters e fallback
 
-Os clientes de Open Food Facts, TBCA e USDA devem ficar em `src/integrations`,
-mapear seus payloads para `ProviderFood`, possuir timeout e permitir substituição
-por fakes nos testes. Ordem de fallback e distinção entre “não encontrado” e
-“indisponível” pertencem a BE-019/BE-020 e não são inventadas neste contrato.
+Open Food Facts usa leitura v3 por barcode e busca textual documentada, com
+User-Agent próprio. USDA usa FoodData Central quando `USDA_API_KEY` está
+configurada. TBCA permanece explicitamente desativada porque não foi encontrado
+contrato público estável/licenciado; o backend não faz scraping.
+
+Timeout, retry limitado e circuit breaker são configuráveis. A busca tenta os
+provedores habilitados, normaliza e grava resultados; barcode retorna `404`
+quando ao menos um provedor respondeu sem resultado e `503` quando todos os
+provedores habilitados estão indisponíveis. Testes usam fixtures, nunca chamadas
+externas instáveis.

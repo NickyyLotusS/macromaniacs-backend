@@ -81,6 +81,9 @@ export class PlannedMealResponseDto {
   @ApiProperty({ example: 1 })
   orderIndex!: number;
 
+  @ApiPropertyOptional({ example: '08:30:00', nullable: true })
+  scheduledTime!: string | null;
+
   @ApiPropertyOptional({ example: 500, nullable: true })
   targetCalories!: number | null;
 
@@ -114,6 +117,7 @@ export class PlannedMealResponseDto {
       id: meal.id,
       name: meal.name,
       orderIndex: meal.orderIndex,
+      scheduledTime: meal.scheduledTime,
       targetCalories: meal.targetCalories,
       targetProtein:
         meal.targetProtein === null ? null : Number(meal.targetProtein),

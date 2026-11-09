@@ -70,6 +70,9 @@ export class MyProfileResponseDto {
   @ApiPropertyOptional({ example: 'Sem lactose', nullable: true })
   dietaryRestrictions!: string | null;
 
+  @ApiProperty({ example: 'America/Sao_Paulo' })
+  timezone!: string;
+
   @ApiProperty({ example: false })
   onboardingCompleted!: boolean;
 

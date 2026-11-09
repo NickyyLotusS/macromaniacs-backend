@@ -20,6 +20,11 @@ import type { User } from '../identity/user.entity';
   "(jsonb_typeof(metadata) = 'object'::text)",
 )
 @Index('point_transactions_user_id_created_at_idx', { synchronize: false })
+@Index(
+  'point_transactions_user_id_idempotency_key_key',
+  ['userId', 'idempotencyKey'],
+  { unique: true, where: 'idempotency_key IS NOT NULL' },
+)
 @Entity('point_transactions')
 export class PointTransaction {
   @PrimaryColumn({
@@ -45,6 +50,20 @@ export class PointTransaction {
 
   @Column({ name: 'metadata', type: 'jsonb', default: {} })
   metadata!: Record<string, unknown>;
+
+  @Column({
+    name: 'idempotency_key',
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+  })
+  idempotencyKey!: string | null;
+
+  @Column({ name: 'source_type', type: 'varchar', length: 64, nullable: true })
+  sourceType!: string | null;
+
+  @Column({ name: 'source_id', type: 'uuid', nullable: true })
+  sourceId!: string | null;
 
   @CreateDateColumn({
     name: 'created_at',

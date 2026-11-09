@@ -4,10 +4,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, QueryFailedError, Repository } from 'typeorm';
 import { UserProfile } from '../../integrations/database/entities/identity/user-profile.entity';
 import { User } from '../../integrations/database/entities/identity/user.entity';
+import { UserTermsAcceptance } from '../../integrations/database/entities/identity/user-terms-acceptance.entity';
+import { UserStats } from '../../integrations/database/entities/gamification/user-stats.entity';
 import { PasswordHasherService } from '../../shared/security/password-hasher.service';
 import type {
   AccessTokenResponseDto,
@@ -31,6 +34,7 @@ export class AuthService {
     private readonly dataSource: DataSource,
     private readonly passwordHasher: PasswordHasherService,
     private readonly jwtService: JwtService,
+    private readonly config: ConfigService,
   ) {
     this.dummyPasswordHash = this.passwordHasher.hash(
       'constant-dummy-password-for-timing-only',
@@ -58,7 +62,44 @@ export class AuthService {
           passwordHash,
         });
         const savedUser = await manager.save(User, user);
-        return this.toResponse(savedUser, null);
+        const profile = await manager.save(
+          UserProfile,
+          manager.create(UserProfile, {
+            userId: savedUser.id,
+            birthDate: null,
+            biologicalSex: null,
+            heightCm: null,
+            currentWeightKg: null,
+            targetWeightKg: null,
+            targetDate: null,
+            dietaryRestrictionsNote: null,
+            goal: null,
+            activityLevel: null,
+            timezone: this.config.getOrThrow<string>('DEFAULT_TIMEZONE'),
+            onboardingCompletedAt: null,
+            avatarConfig: {},
+          }),
+        );
+        await manager.save(
+          UserTermsAcceptance,
+          manager.create(UserTermsAcceptance, {
+            userId: savedUser.id,
+            termsVersion: this.config.getOrThrow<string>('TERMS_VERSION'),
+          }),
+        );
+        await manager.save(
+          UserStats,
+          manager.create(UserStats, {
+            userId: savedUser.id,
+            currentStreak: 0,
+            bestStreak: 0,
+            totalPoints: 0,
+            lastActivityAt: null,
+            lastActivityDate: null,
+            timezone: profile.timezone,
+          }),
+        );
+        return this.toResponse(savedUser, profile);
       });
     } catch (error) {
       if (this.isUniqueViolation(error)) {
@@ -120,7 +161,10 @@ export class AuthService {
       displayName: user.displayName,
       createdAt: user.createdAt.toISOString(),
       profile: profile
-        ? { id: profile.userId, onboardingCompleted: true }
+        ? {
+            id: profile.userId,
+            onboardingCompleted: profile.onboardingCompletedAt !== null,
+          }
         : null,
     };
   }

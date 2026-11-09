@@ -37,6 +37,12 @@ export class UserStats {
   @Column({ name: 'last_activity_at', type: 'timestamptz', nullable: true })
   lastActivityAt: Date | null;
 
+  @Column({ name: 'last_activity_date', type: 'date', nullable: true })
+  lastActivityDate: string | null;
+
+  @Column({ name: 'timezone', type: 'varchar', length: 64, default: 'UTC' })
+  timezone!: string;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',

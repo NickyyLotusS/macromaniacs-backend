@@ -107,18 +107,20 @@ Table users {
 
 Table user_profiles {
   user_id uuid [not null]
-  birth_date date [not null]
-  height_cm decimal(5,2) [not null]
-  current_weight_kg decimal(5,2) [not null]
-  goal UserGoal [not null]
+  birth_date date
+  height_cm decimal(5,2)
+  current_weight_kg decimal(5,2)
+  goal UserGoal
   avatar_config jsonb [not null, default: `'{}'::jsonb`]
-  biological_sex BiologicalSex [not null]
-  activity_level ActivityLevel [not null]
+  biological_sex BiologicalSex
+  activity_level ActivityLevel
   target_weight_kg decimal(5,2)
   target_date date
   dietary_restrictions_note text
   created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
   updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  timezone varchar(64) [not null, default: `'UTC'::character varying`]
+  onboarding_completed_at timestamptz
 
   indexes {
     user_id [name: 'user_profiles_pkey', pk, note: 'SQL: user_id ASC']
@@ -132,9 +134,26 @@ Table user_profiles {
     `((height_cm IS NULL) OR (height_cm > (0)::numeric))` [name: 'user_profiles_height_cm_check']
     `((target_date IS NULL) OR (target_date > birth_date))` [name: 'user_profiles_target_date_check']
     `((target_weight_kg IS NULL) OR (target_weight_kg > (0)::numeric))` [name: 'user_profiles_target_weight_kg_check']
+    `(length(btrim((timezone)::text)) > 0)` [name: 'user_profiles_timezone_not_blank_check']
   }
 
-  Note: "O registro é opcional para User, mas representa onboarding concluído e por isso exige todos os campos metabólicos."
+  Note: "O registro inicial é criado no cadastro; onboarding_completed_at distingue perfil incompleto de onboarding concluído."
+}
+
+Table user_terms_acceptances {
+  id uuid [not null]
+  user_id uuid [not null]
+  terms_version varchar(64) [not null]
+  accepted_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    id [name: 'user_terms_acceptances_pkey', pk, note: 'SQL: id ASC']
+    (user_id, terms_version) [name: 'user_terms_acceptances_user_id_terms_version_key', unique, note: 'SQL: user_id ASC, terms_version ASC']
+  }
+
+  checks {
+    `(length(btrim((terms_version)::text)) > 0)` [name: 'user_terms_acceptances_version_not_blank_check']
+  }
 }
 
 Table body_measurements {
@@ -161,6 +180,8 @@ Table user_stats {
   last_activity_at timestamptz
   created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
   updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  last_activity_date date
+  timezone varchar(64) [not null, default: `'UTC'::character varying`]
 
   indexes {
     user_id [name: 'user_stats_pkey', pk, note: 'SQL: user_id ASC']
@@ -169,6 +190,7 @@ Table user_stats {
   checks {
     `((current_streak >= 0) AND (best_streak >= current_streak))` [name: 'user_stats_streaks_check']
     `(total_points >= 0)` [name: 'user_stats_total_points_check']
+    `(length(btrim((timezone)::text)) > 0)` [name: 'user_stats_timezone_not_blank_check']
   }
 }
 
@@ -186,6 +208,7 @@ Table foods {
   serving_size_g decimal(6,2) [not null, default: `100`]
   created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
   updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  retrieved_at timestamptz
 
   indexes {
     barcode [name: 'foods_barcode_key', unique, note: 'SQL: barcode ASC']
@@ -241,6 +264,7 @@ Table planned_meals {
   target_fat decimal(6,2)
   created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
   updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  scheduled_time time
 
   indexes {
     (diet_plan_id, order_index) [name: 'planned_meals_diet_plan_id_order_index_key', unique, note: 'SQL: diet_plan_id ASC, order_index ASC']
@@ -288,16 +312,49 @@ Table meal_logs {
   consumed_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
   created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
   updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  food_date date [not null]
+  timezone varchar(64) [not null, default: `'UTC'::character varying`]
+  idempotency_key varchar(128)
+  deleted_at timestamptz
 
   indexes {
     id [name: 'meal_logs_pkey', pk, note: 'SQL: id ASC']
     planned_meal_id [name: 'meal_logs_planned_meal_id_idx', note: 'SQL: planned_meal_id ASC']
     (user_id, consumed_at) [name: 'meal_logs_user_id_consumed_at_idx', note: 'SQL: user_id ASC, consumed_at ASC']
+    (user_id, food_date) [name: 'meal_logs_user_id_food_date_idx', note: 'SQL: user_id ASC, food_date ASC']
+    (user_id, idempotency_key) [name: 'meal_logs_user_id_idempotency_key_key', unique, note: 'SQL: user_id ASC, idempotency_key ASC; WHERE (idempotency_key IS NOT NULL)']
   }
 
   checks {
     `(length(btrim((name)::text)) > 0)` [name: 'meal_logs_name_not_blank_check']
     `((photo_url IS NULL) OR (length(btrim((photo_url)::text)) > 0))` [name: 'meal_logs_photo_url_check']
+    `((idempotency_key IS NULL) OR (length(btrim((idempotency_key)::text)) > 0))` [name: 'meal_logs_idempotency_key_not_blank_check']
+    `(length(btrim((timezone)::text)) > 0)` [name: 'meal_logs_timezone_not_blank_check']
+  }
+}
+
+Table daily_nutrition_snapshots {
+  user_id uuid [not null]
+  food_date date [not null]
+  timezone varchar(64) [not null]
+  calories decimal(10,2) [not null, default: `0`]
+  protein decimal(10,2) [not null, default: `0`]
+  carbs decimal(10,2) [not null, default: `0`]
+  fat decimal(10,2) [not null, default: `0`]
+  fiber decimal(10,2) [not null, default: `0`]
+  meal_count int [not null, default: `0`]
+  target_calories int
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, food_date) [name: 'daily_nutrition_snapshots_pkey', pk, note: 'SQL: user_id ASC, food_date ASC']
+    (user_id, food_date) [name: 'daily_nutrition_snapshots_user_id_food_date_idx', note: 'SQL: user_id ASC, food_date ASC']
+  }
+
+  checks {
+    `((calories >= (0)::numeric) AND (protein >= (0)::numeric) AND (carbs >= (0)::numeric) AND (fat >= (0)::numeric) AND (fiber >= (0)::numeric) AND (meal_count >= 0))` [name: 'daily_nutrition_snapshots_totals_check']
+    `(length(btrim((timezone)::text)) > 0)` [name: 'daily_nutrition_snapshots_timezone_not_blank_check']
   }
 }
 
@@ -333,6 +390,7 @@ Table groups {
   created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
   creator_id uuid [not null]
   updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  is_private boolean [not null, default: `true`]
 
   indexes {
     creator_id [name: 'groups_creator_id_idx', note: 'SQL: creator_id ASC']
@@ -391,6 +449,7 @@ Table feed_posts {
 
   indexes {
     (group_id, created_at) [name: 'feed_posts_group_id_created_at_idx', note: 'SQL: group_id ASC, created_at DESC']
+    (group_id, meal_log_id) [name: 'feed_posts_group_id_meal_log_id_key', unique, note: 'SQL: group_id ASC, meal_log_id ASC; WHERE (meal_log_id IS NOT NULL)']
     meal_log_id [name: 'feed_posts_meal_log_id_idx', note: 'SQL: meal_log_id ASC']
     id [name: 'feed_posts_pkey', pk, note: 'SQL: id ASC']
     (user_id, created_at) [name: 'feed_posts_user_id_created_at_idx', note: 'SQL: user_id ASC, created_at DESC']
@@ -440,15 +499,44 @@ Table point_transactions {
   reason PointTransactionReason [not null]
   created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
   metadata jsonb [not null, default: `'{}'::jsonb`]
+  idempotency_key varchar(128)
+  source_type varchar(64)
+  source_id uuid
 
   indexes {
     id [name: 'point_transactions_pkey', pk, note: 'SQL: id ASC']
     (user_id, created_at) [name: 'point_transactions_user_id_created_at_idx', note: 'SQL: user_id ASC, created_at DESC']
+    (user_id, idempotency_key) [name: 'point_transactions_user_id_idempotency_key_key', unique, note: 'SQL: user_id ASC, idempotency_key ASC; WHERE (idempotency_key IS NOT NULL)']
   }
 
   checks {
     `(amount <> 0)` [name: 'point_transactions_amount_check']
     `(jsonb_typeof(metadata) = 'object'::text)` [name: 'point_transactions_metadata_check']
+    `((idempotency_key IS NULL) OR (length(btrim((idempotency_key)::text)) > 0))` [name: 'point_transactions_idempotency_key_not_blank_check']
+  }
+}
+
+Table outbox_events {
+  id uuid [not null]
+  aggregate_type varchar(64) [not null]
+  aggregate_id uuid [not null]
+  event_type varchar(100) [not null]
+  deduplication_key varchar(180) [not null]
+  payload jsonb [not null, default: `'{}'::jsonb`]
+  occurred_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  processed_at timestamptz
+  attempts int [not null, default: `0`]
+  last_error text
+
+  indexes {
+    deduplication_key [name: 'outbox_events_deduplication_key_key', unique, note: 'SQL: deduplication_key ASC']
+    id [name: 'outbox_events_pkey', pk, note: 'SQL: id ASC']
+    occurred_at [name: 'outbox_events_unprocessed_idx', note: 'SQL: occurred_at ASC; WHERE (processed_at IS NULL)']
+  }
+
+  checks {
+    `(attempts >= 0)` [name: 'outbox_events_attempts_check']
+    `(jsonb_typeof(payload) = 'object'::text)` [name: 'outbox_events_payload_check']
   }
 }
 
@@ -532,6 +620,7 @@ Table cosmetic_items {
   code varchar(50) [not null]
   created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
   updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  is_active boolean [not null, default: `true`]
 
   indexes {
     code [name: 'cosmetic_items_code_key', unique, note: 'SQL: code ASC']
@@ -550,6 +639,7 @@ Table user_cosmetics {
   user_id uuid [not null]
   cosmetic_item_id uuid [not null]
   acquired_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  is_equipped boolean [not null, default: `false`]
 
   indexes {
     cosmetic_item_id [name: 'user_cosmetics_cosmetic_item_id_idx', note: 'SQL: cosmetic_item_id ASC']
@@ -586,3 +676,5 @@ Ref user_daily_missions_mission_id_fkey: user_daily_missions.mission_id > daily_
 Ref user_daily_missions_user_id_fkey: user_daily_missions.user_id > users.id [delete: cascade, update: cascade]
 Ref user_profiles_user_id_fkey: user_profiles.user_id - users.id [delete: cascade, update: cascade]
 Ref user_stats_user_id_fkey: user_stats.user_id - users.id [delete: cascade, update: cascade]
+Ref user_terms_acceptances_user_id_fkey: user_terms_acceptances.user_id > users.id [delete: cascade, update: cascade]
+Ref daily_nutrition_snapshots_user_id_fkey: daily_nutrition_snapshots.user_id > users.id [delete: cascade, update: cascade]

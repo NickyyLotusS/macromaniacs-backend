@@ -108,15 +108,16 @@ O envio final do onboarding usa `PATCH /v1/users/me`:
 ```json
 {
   "displayName": "Nicolly",
-  "dateOfBirth": "1996-09-19",
+  "birthDate": "1996-09-19",
   "heightCm": 165,
   "currentWeightKg": 68.5,
   "biologicalSex": "FEMALE",
-  "goal": "LOSE_WEIGHT",
+  "goal": "WEIGHT_LOSS",
   "activityLevel": "MODERATE",
   "targetWeightKg": 62,
   "targetDate": "2027-03-01",
-  "dietaryRestrictions": "Sem lactose"
+  "dietaryRestrictionsNote": "Sem lactose",
+  "timezone": "America/Sao_Paulo"
 }
 ```
 

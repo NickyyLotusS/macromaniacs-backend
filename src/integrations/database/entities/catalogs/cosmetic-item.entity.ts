@@ -60,6 +60,9 @@ export class CosmeticItem {
   @Column({ name: 'asset_url', type: 'varchar', length: 500 })
   assetUrl!: string;
 
+  @Column({ name: 'is_active', type: 'boolean', default: true })
+  isActive!: boolean;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',

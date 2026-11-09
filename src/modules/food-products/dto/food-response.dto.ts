@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { FoodSource } from '../../../integrations/database/entities/enums';
 import type { FoodRecord } from '../domain/food-catalog';
+import { PaginationMetaDto } from '../../../shared/http/pagination.dto';
 
 export class FoodResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -36,6 +37,9 @@ export class FoodResponseDto {
   @ApiProperty({ example: 100 })
   servingSizeG!: number;
 
+  @ApiPropertyOptional({ format: 'date-time', nullable: true })
+  retrievedAt!: string | null;
+
   @ApiProperty({ format: 'date-time' })
   createdAt!: string;
 
@@ -55,8 +59,17 @@ export class FoodResponseDto {
       fatPer100g: Number(record.fatPer100g),
       fiberPer100g: Number(record.fiberPer100g),
       servingSizeG: Number(record.servingSizeG),
+      retrievedAt: record.retrievedAt?.toISOString() ?? null,
       createdAt: record.createdAt.toISOString(),
       updatedAt: record.updatedAt.toISOString(),
     };
   }
+}
+
+export class FoodListResponseDto {
+  @ApiProperty({ type: [FoodResponseDto] })
+  items!: FoodResponseDto[];
+
+  @ApiProperty({ type: PaginationMetaDto })
+  meta!: PaginationMetaDto;
 }

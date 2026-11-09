@@ -31,6 +31,7 @@ import type {
   NutritionMetricsResponseDto,
 } from './dto/user-profile-response.dto';
 import { NutritionCalculatorService } from './nutrition-calculator.service';
+import { assertIanaTimezone } from '../../shared/time/timezone';
 
 type PostgresDriverError = { code?: string };
 
@@ -108,10 +109,11 @@ export class UsersService {
         if (dto.displayName !== undefined) user.displayName = dto.displayName;
         await manager.save(User, user);
 
-        const profile = user.profile ?? null;
+        let profile = user.profile ?? null;
         if (!profile && this.hasProfileFields(dto)) {
-          await this.createProfile(manager, userId, dto);
-        } else if (profile) {
+          profile = await this.createEmptyProfile(manager, userId);
+        }
+        if (profile) {
           await this.updateProfile(manager, profile, dto);
         }
       });
@@ -128,63 +130,28 @@ export class UsersService {
     return this.getMe(userId);
   }
 
-  private async createProfile(
+  private createEmptyProfile(
     manager: EntityManager,
     userId: string,
-    dto: UpdateMyProfileDto,
-  ): Promise<void> {
-    const missing = [
-      ['dateOfBirth', dto.dateOfBirth],
-      ['biologicalSex', dto.biologicalSex],
-      ['goal', dto.goal],
-      ['activityLevel', dto.activityLevel],
-      ['heightCm', dto.heightCm],
-      ['currentWeightKg', dto.currentWeightKg],
-    ]
-      .filter(([, value]) => value === undefined || value === null)
-      .map(([field]) => field);
-
-    if (missing.length > 0) {
-      throw new BadRequestException(
-        `Complete o primeiro perfil com: ${missing.join(', ')}`,
-      );
-    }
-
-    this.validateGoalDetails(
-      dto.targetWeightKg ?? null,
-      dto.targetDate ?? null,
-    );
-    this.calculator.calculate({
-      dateOfBirth: dto.dateOfBirth!,
-      biologicalSex: dto.biologicalSex!,
-      heightCm: dto.heightCm!,
-      currentWeightKg: dto.currentWeightKg!,
-      goal: dto.goal!,
-      activityLevel: dto.activityLevel!,
-      targetWeightKg: dto.targetWeightKg,
-      targetDate: dto.targetDate,
-    });
-
-    await manager.save(
+  ): Promise<UserProfile> {
+    return manager.save(
       UserProfile,
       manager.create(UserProfile, {
         userId,
-        birthDate: dto.dateOfBirth!,
-        biologicalSex: dto.biologicalSex as unknown as DatabaseBiologicalSex,
-        heightCm: this.decimal(dto.heightCm!),
-        currentWeightKg: this.decimal(dto.currentWeightKg!),
-        targetWeightKg:
-          dto.targetWeightKg === undefined || dto.targetWeightKg === null
-            ? null
-            : this.decimal(dto.targetWeightKg),
-        targetDate: dto.targetDate ?? null,
-        dietaryRestrictionsNote: dto.dietaryRestrictions ?? null,
-        goal: apiGoalToDatabase[dto.goal!],
-        activityLevel: dto.activityLevel as unknown as DatabaseActivityLevel,
+        birthDate: null,
+        biologicalSex: null,
+        heightCm: null,
+        currentWeightKg: null,
+        targetWeightKg: null,
+        targetDate: null,
+        dietaryRestrictionsNote: null,
+        goal: null,
+        activityLevel: null,
+        timezone: 'UTC',
+        onboardingCompletedAt: null,
         avatarConfig: {},
       }),
     );
-    await this.addMeasurement(manager, userId, dto.currentWeightKg!);
   }
 
   private async updateProfile(
@@ -192,6 +159,8 @@ export class UsersService {
     profile: UserProfile,
     dto: UpdateMyProfileDto,
   ): Promise<void> {
+    const wasComplete = profile.onboardingCompletedAt !== null;
+    const previousWeight = profile.currentWeightKg;
     if (dto.dateOfBirth !== undefined) profile.birthDate = dto.dateOfBirth;
     if (dto.biologicalSex !== undefined) {
       profile.biologicalSex =
@@ -206,11 +175,7 @@ export class UsersService {
       profile.heightCm = this.decimal(dto.heightCm);
     }
     if (dto.currentWeightKg !== undefined) {
-      const changed = Number(profile.currentWeightKg) !== dto.currentWeightKg;
       profile.currentWeightKg = this.decimal(dto.currentWeightKg);
-      if (changed) {
-        await this.addMeasurement(manager, profile.userId, dto.currentWeightKg);
-      }
     }
     if (dto.targetWeightKg !== undefined) {
       profile.targetWeightKg =
@@ -220,9 +185,38 @@ export class UsersService {
     if (dto.dietaryRestrictions !== undefined) {
       profile.dietaryRestrictionsNote = dto.dietaryRestrictions;
     }
+    if (dto.timezone !== undefined) {
+      try {
+        profile.timezone = assertIanaTimezone(dto.timezone);
+      } catch {
+        throw new BadRequestException('timezone must be a valid IANA timezone');
+      }
+    }
 
     this.validateGoalDetails(profile.targetWeightKg, profile.targetDate);
-    this.calculateNutrition(profile);
+    const missing = this.missingOnboardingFields(profile);
+    if (!wasComplete && missing.length > 0 && this.hasOnboardingFields(dto)) {
+      throw new BadRequestException(
+        `Complete o primeiro perfil com: ${missing.join(', ')}`,
+      );
+    }
+
+    if (missing.length === 0) {
+      this.calculateNutrition(profile);
+      if (!wasComplete) {
+        profile.onboardingCompletedAt = new Date();
+        await this.addMeasurement(
+          manager,
+          profile.userId,
+          Number(profile.currentWeightKg),
+        );
+      } else if (
+        dto.currentWeightKg !== undefined &&
+        Number(previousWeight) !== dto.currentWeightKg
+      ) {
+        await this.addMeasurement(manager, profile.userId, dto.currentWeightKg);
+      }
+    }
     await manager.save(UserProfile, profile);
   }
 
@@ -252,7 +246,35 @@ export class UsersService {
       dto.targetWeightKg,
       dto.targetDate,
       dto.dietaryRestrictions,
+      dto.timezone,
     ].some((value) => value !== undefined);
+  }
+
+  private hasOnboardingFields(dto: UpdateMyProfileDto): boolean {
+    return [
+      dto.dateOfBirth,
+      dto.biologicalSex,
+      dto.goal,
+      dto.activityLevel,
+      dto.heightCm,
+      dto.currentWeightKg,
+      dto.targetWeightKg,
+      dto.targetDate,
+      dto.dietaryRestrictions,
+    ].some((value) => value !== undefined);
+  }
+
+  private missingOnboardingFields(profile: UserProfile): string[] {
+    return [
+      ['dateOfBirth', profile.birthDate],
+      ['biologicalSex', profile.biologicalSex],
+      ['goal', profile.goal],
+      ['activityLevel', profile.activityLevel],
+      ['heightCm', profile.heightCm],
+      ['currentWeightKg', profile.currentWeightKg],
+    ]
+      .filter(([, value]) => value === null || value === undefined)
+      .map(([field]) => String(field));
   }
 
   private validateGoalDetails(
@@ -271,7 +293,7 @@ export class UsersService {
     profile: UserProfile | null,
     measurements: BodyMeasurement[],
   ): MyProfileResponseDto {
-    if (!profile) {
+    if (!profile || profile.onboardingCompletedAt === null) {
       return {
         id: user.id,
         email: user.email,
@@ -284,6 +306,7 @@ export class UsersService {
         targetWeightKg: null,
         targetDate: null,
         dietaryRestrictions: null,
+        timezone: profile?.timezone ?? 'UTC',
         onboardingCompleted: false,
         onboardingCompletedAt: null,
         currentMeasurement: null,
@@ -303,14 +326,15 @@ export class UsersService {
       displayName: user.displayName,
       dateOfBirth: profile.birthDate,
       biologicalSex: this.toApiSex(profile.biologicalSex),
-      goal: databaseGoalToApi.get(profile.goal) ?? null,
+      goal: profile.goal ? (databaseGoalToApi.get(profile.goal) ?? null) : null,
       activityLevel: profile.activityLevel as unknown as ActivityLevel,
       targetWeightKg:
         profile.targetWeightKg === null ? null : Number(profile.targetWeightKg),
       targetDate: profile.targetDate,
       dietaryRestrictions: profile.dietaryRestrictionsNote,
+      timezone: profile.timezone,
       onboardingCompleted: true,
-      onboardingCompletedAt: profile.createdAt.toISOString(),
+      onboardingCompletedAt: profile.onboardingCompletedAt.toISOString(),
       currentMeasurement: measurementResponses[0] ?? null,
       measurements: measurementResponses,
       nutrition: this.toNutritionResponse(profile),
@@ -342,11 +366,15 @@ export class UsersService {
 
   private calculateNutrition(profile: UserProfile) {
     const biologicalSex = this.toApiSex(profile.biologicalSex);
-    const goal = databaseGoalToApi.get(profile.goal);
+    const goal = profile.goal ? databaseGoalToApi.get(profile.goal) : undefined;
     if (
       !biologicalSex ||
       biologicalSex === BiologicalSex.NOT_INFORMED ||
-      !goal
+      !goal ||
+      !profile.birthDate ||
+      !profile.heightCm ||
+      !profile.currentWeightKg ||
+      !profile.activityLevel
     ) {
       return null;
     }
@@ -363,7 +391,7 @@ export class UsersService {
     });
   }
 
-  private toApiSex(value: DatabaseBiologicalSex): BiologicalSex | null {
+  private toApiSex(value: DatabaseBiologicalSex | null): BiologicalSex | null {
     if (value === DatabaseBiologicalSex.MALE) return BiologicalSex.MALE;
     if (value === DatabaseBiologicalSex.FEMALE) return BiologicalSex.FEMALE;
     if (value === DatabaseBiologicalSex.NOT_INFORMED) {

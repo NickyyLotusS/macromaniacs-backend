@@ -15,17 +15,27 @@ export type FoodRecord = {
   fatPer100g: string;
   fiberPer100g: string;
   servingSizeG: string;
+  retrievedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
 
 export type ManualFood = Omit<
   FoodRecord,
-  'id' | 'source' | 'externalId' | 'createdAt' | 'updatedAt'
+  'id' | 'source' | 'externalId' | 'retrievedAt' | 'createdAt' | 'updatedAt'
 >;
 
 export interface FoodCatalogRepository {
   findByBarcode(barcode: string): Promise<FoodRecord | null>;
+  findById(id: string): Promise<FoodRecord | null>;
+  search(
+    query: string,
+    page: number,
+    limit: number,
+  ): Promise<{
+    items: FoodRecord[];
+    total: number;
+  }>;
   findByExternalIdentity(
     source: FoodProviderSource,
     externalId: string,

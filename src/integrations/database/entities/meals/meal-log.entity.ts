@@ -3,6 +3,7 @@ import {
   Check,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   JoinColumn,
@@ -25,6 +26,11 @@ import type { FeedPost } from '../social/feed-post.entity';
 )
 @Index('meal_logs_user_id_consumed_at_idx', ['userId', 'consumedAt'])
 @Index('meal_logs_planned_meal_id_idx', ['plannedMealId'])
+@Index('meal_logs_user_id_idempotency_key_key', ['userId', 'idempotencyKey'], {
+  unique: true,
+  where: 'idempotency_key IS NOT NULL',
+})
+@Index('meal_logs_user_id_food_date_idx', ['userId', 'foodDate'])
 @Entity('meal_logs')
 export class MealLog {
   @PrimaryColumn({
@@ -53,6 +59,20 @@ export class MealLog {
   })
   consumedAt!: Date;
 
+  @Column({ name: 'food_date', type: 'date' })
+  foodDate!: string;
+
+  @Column({ name: 'timezone', type: 'varchar', length: 64 })
+  timezone!: string;
+
+  @Column({
+    name: 'idempotency_key',
+    type: 'varchar',
+    length: 128,
+    nullable: true,
+  })
+  idempotencyKey!: string | null;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',
@@ -66,6 +86,9 @@ export class MealLog {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt!: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt!: Date | null;
 
   // UUIDs remain application-generated: the existing PostgreSQL columns have no default.
   @BeforeInsert()

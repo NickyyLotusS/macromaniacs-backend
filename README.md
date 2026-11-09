@@ -26,7 +26,10 @@ serviços públicos ou eventos.
 
 ## Banco de dados
 
-TypeORM é o único ORM ativo. A arquitetura inicialmente migrada com Prisma foi preservada: 23 tabelas PostgreSQL, 11 enums e todas as constraints/índices. Os arquivos Prisma ficam somente em `legacy/prisma`; não executar comandos Prisma.
+TypeORM é o único ORM ativo. A baseline migrada do Prisma foi preservada e uma
+migration aditiva eleva o contrato a 26 tabelas PostgreSQL, mantendo 11 enums e
+todas as constraints/índices. Os arquivos Prisma ficam somente em
+`legacy/prisma`; não executar comandos Prisma.
 
 Use Node compatível com o toolchain (22.22.3+ na linha 22, ou 24.15.0+ na linha 24), npm e Docker. Configure `.env` local usando `.env.example` sem sobrescrever credenciais/URLs existentes. O Compose canônico é `infra/docker/compose.yaml`: PostgreSQL 15, `macromaniacs_postgres`, host `localhost:5433`, banco `macromaniacs_db`, usuário `postgres` e volume externo preservado `macromaniacs-backend_pgdata`.
 
@@ -60,12 +63,23 @@ npm run start:dev
 - Perfil nutricional atual: `GET /v1/users/me` (Bearer JWT)
 - Atualização/onboarding: `PATCH /v1/users/me` (Bearer JWT)
 - Cadastro manual de alimento: `POST /v1/foods/manual` (Bearer JWT)
+- Busca/detalhe/barcode: `GET /v1/foods`, `/v1/foods/{id}` e
+  `/v1/foods/barcode/{barcode}`
 - Planos alimentares: `POST/GET /v1/diet-plans` (Bearer JWT)
 - Detalhe/edição/ativação: `/v1/diet-plans/{id}` (Bearer JWT)
 - Refeições planejadas e itens: `/v1/diet-plans/{id}/meals` (Bearer JWT)
+- Consumo manual/check-in e histórico: `/v1/meals` (Bearer JWT e
+  `Idempotency-Key` nas criações)
+- Progresso diário/histórico: `/v1/progress` (Bearer JWT)
+- Streak, missões, conquistas e ledger: `/v1/gamification` (Bearer JWT)
+- Grupos, feed, reações e ranking: `/v1/groups` (Bearer JWT)
+- Catálogo, saldo, compras e inventário: `/v1/rewards` (Bearer JWT, exceto
+  catálogo público)
 
 As convenções HTTP estão documentadas em
 [`docs/api/conventions.md`](docs/api/conventions.md).
+O inventário completo de endpoints e exemplos está em
+[`docs/api/backend-completion.md`](docs/api/backend-completion.md).
 
 ## Integração com React
 
@@ -85,13 +99,18 @@ VITE_API_URL=http://localhost:3000
 Exemplos de payload, tipos e chamadas `fetch` estão em
 [`docs/api/react-integration.md`](docs/api/react-integration.md).
 
+A avaliação reproduzível de consultas e o smoke de staging estão em
+[`docs/performance.md`](docs/performance.md).
+
 ## Perfil e cálculo nutricional
 
 O servidor é a fonte de verdade para `onboardingCompleted` e para os valores
-derivados. O cliente não envia esses campos. Ao atualizar peso, altura, data de
+derivados. Um perfil inicial auditável é criado no cadastro e
+`onboardingCompletedAt` só é preenchido após todos os campos mínimos. O cliente
+não envia esses campos. Ao atualizar peso, altura, data de
 nascimento, sexo biológico, objetivo, atividade ou meta, a transação registra a
 medida corporal e recalcula as métricas retornadas. A persistência de snapshots
-diários permanece separada no backlog (BE-032).
+diários usa `daily_nutrition_snapshots`, separado do estado de gamificação.
 
 - TMB: fórmula de Mifflin-St Jeor, em kcal/dia.
 - TDEE: TMB multiplicada pelo fator de atividade (`1.2`, `1.375`, `1.55`,
@@ -122,6 +141,14 @@ o schema de teste necessário para os cenários:
 npm run test:e2e
 ```
 
+A GitHub Action executa qualidade, cobertura e uma suíte adicional contra
+PostgreSQL 15 real. Localmente, essa suíte exige um servidor descartável cujo
+banco administrativo se chame `validation`:
+
+```bash
+TEST_ADMIN_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55433/validation npm run test:integration
+```
+
 Para validar manualmente contra PostgreSQL real, existe também um serviço
 efêmero separado na porta 55433:
 
@@ -149,6 +176,12 @@ Health check: /health
 Migrations nunca são executadas automaticamente na inicialização. Configure no
 provedor `DATABASE_URL`, `APP_ENV`, `JWT_SECRET`, `JWT_EXPIRES_IN` e
 `CORS_ORIGINS`. Segredos e URLs reais de banco nunca devem ser commitados.
+
+O rate limit é configurável por ambiente e usa um orçamento mais estrito para
+`POST /v1/auth/login`. `TRUST_PROXY` deve permanecer `false` salvo quando a
+aplicação estiver atrás de proxy reverso confiável. Em múltiplas réplicas,
+substitua o contador em memória por armazenamento distribuído antes de usar o
+limite como controle global.
 
 ## Operação do banco legado
 

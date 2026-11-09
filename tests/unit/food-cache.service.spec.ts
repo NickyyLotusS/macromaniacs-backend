@@ -26,6 +26,7 @@ describe('FoodCacheService', () => {
     fatPer100g: '6.70',
     fiberPer100g: '10.60',
     servingSizeG: '30.00',
+    retrievedAt: new Date('2026-10-18T10:00:00.000Z'),
     createdAt: new Date('2026-10-18T10:00:00.000Z'),
     updatedAt: new Date('2026-10-18T10:00:00.000Z'),
     ...overrides,
@@ -49,6 +50,8 @@ describe('FoodCacheService', () => {
 
   const repository = (): jest.Mocked<FoodCatalogRepository> => ({
     findByBarcode: jest.fn(),
+    findById: jest.fn(),
+    search: jest.fn(),
     findByExternalIdentity: jest.fn(),
     saveExternal: jest.fn(),
     createManual: jest.fn(),

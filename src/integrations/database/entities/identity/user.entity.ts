@@ -26,6 +26,8 @@ import type { UserAchievement } from '../gamification/user-achievement.entity';
 import type { UserDailyMission } from '../gamification/user-daily-mission.entity';
 import type { UserCosmetic } from '../gamification/user-cosmetic.entity';
 import type { Group } from '../social/group.entity';
+import type { UserTermsAcceptance } from './user-terms-acceptance.entity';
+import type { DailyNutritionSnapshot } from '../nutrition/daily-nutrition-snapshot.entity';
 
 @Check(
   'users_email_format_check',
@@ -132,4 +134,10 @@ export class User {
 
   @OneToMany('Group', 'creator')
   createdGroups!: Relation<Group>[];
+
+  @OneToMany('UserTermsAcceptance', 'user')
+  termsAcceptances!: Relation<UserTermsAcceptance>[];
+
+  @OneToMany('DailyNutritionSnapshot', 'user')
+  nutritionSnapshots!: Relation<DailyNutritionSnapshot>[];
 }

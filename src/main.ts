@@ -12,7 +12,15 @@ async function bootstrap(): Promise<void> {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-  configureApplication(app, { corsOrigins });
+  configureApplication(app, {
+    corsOrigins,
+    rateLimit: {
+      windowMs: config.get<number>('RATE_LIMIT_WINDOW_MS') ?? 60_000,
+      maxRequests: config.get<number>('RATE_LIMIT_MAX') ?? 120,
+      loginMaxRequests: config.get<number>('LOGIN_RATE_LIMIT_MAX') ?? 10,
+    },
+    trustProxy: config.get<boolean>('TRUST_PROXY') === true,
+  });
 
   const appEnv = config.get<string>('APP_ENV') ?? 'development';
 

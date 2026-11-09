@@ -20,14 +20,14 @@ describe('Configuração de banco', () => {
     ).rejects.toThrow('destrutivo');
     expect(calls).toBe(1);
   });
-  it('carrega 23 entidades e só a baseline, sem mutações automáticas', () => {
+  it('carrega 26 entidades e as migrations revisadas, sem mutações automáticas', () => {
     const options = databaseOptions(
       'postgresql://user:example@localhost:5433/example',
     );
     expect(options.synchronize).toBe(false);
     expect(options.migrationsRun).toBe(false);
-    expect(options.entities).toHaveLength(23);
-    expect(options.migrations).toHaveLength(1);
+    expect(options.entities).toHaveLength(26);
+    expect(options.migrations).toHaveLength(2);
     expect(options).toHaveProperty('installExtensions', false);
   });
   it.each([
