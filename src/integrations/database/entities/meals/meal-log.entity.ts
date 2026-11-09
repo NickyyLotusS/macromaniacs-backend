@@ -70,7 +70,7 @@ export class MealLog {
   @Column({ name: 'food_date', type: 'date' })
   foodDate!: string;
 
-  @Column({ name: 'timezone', type: 'varchar', length: 64 })
+  @Column({ name: 'timezone', type: 'varchar', length: 64, default: 'UTC' })
   timezone!: string;
 
   @Column({

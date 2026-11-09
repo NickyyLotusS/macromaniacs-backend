@@ -43,19 +43,49 @@ export class DailyNutritionSnapshot {
   @Column({ name: 'timezone', type: 'varchar', length: 64 })
   timezone!: string;
 
-  @Column({ name: 'calories', type: 'numeric', precision: 10, scale: 2 })
+  @Column({
+    name: 'calories',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   calories!: string;
 
-  @Column({ name: 'protein', type: 'numeric', precision: 10, scale: 2 })
+  @Column({
+    name: 'protein',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   protein!: string;
 
-  @Column({ name: 'carbs', type: 'numeric', precision: 10, scale: 2 })
+  @Column({
+    name: 'carbs',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   carbs!: string;
 
-  @Column({ name: 'fat', type: 'numeric', precision: 10, scale: 2 })
+  @Column({
+    name: 'fat',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   fat!: string;
 
-  @Column({ name: 'fiber', type: 'numeric', precision: 10, scale: 2 })
+  @Column({
+    name: 'fiber',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   fiber!: string;
 
   @Column({ name: 'meal_count', type: 'integer', default: 0 })

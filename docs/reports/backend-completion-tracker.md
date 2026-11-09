@@ -74,6 +74,7 @@ GitHub issue numbers are intentionally kept separate from BE task codes.
 13. Opened final PR #88 against `main`; GitHub reports it mergeable.
 14. First PR CI iteration: `quality` passed; `postgres-15` exposed an unterminated PL/pgSQL dollar quote before schema creation. Fixed the migration delimiter in `5faab65`; no test was mocked or relaxed.
 15. Second PR CI iteration: migrations, SQL integrity, performance and concurrent purchases passed on PostgreSQL 15. The remaining failures exposed preflight semantics after both known migrations and four physical CHECKs absent from entity metadata; both verifiers were corrected without dropping constraints.
+16. Third PR CI iteration: 8/9 real PostgreSQL cases passed; the only failure was non-zero schema-builder SQL for five defaults and one partial index. Entity metadata was aligned with the already-correct physical schema; no migration or public contract changed.
 
 ## External blockers (do not misreport as completed)
 
