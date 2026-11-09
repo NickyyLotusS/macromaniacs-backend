@@ -10,15 +10,17 @@ tratadas como aceite de staging, frontend, Produto ou Infra.
 - Base consolidada: `integration/presentation-2026-10-26`
 - Commit funcional inicial: `51afa10`
 - Head de código validado: `6618682`
-- Relação com `origin/main` após o gate: 22 commits à frente, 0 atrás
+- Relação com `origin/main` após o gate: 0 commits atrás; contagem exata de
+  commits/diff permanece visível na PR #88
 - Produção/Railway: não alterados
 - Merge em `main`: não realizado
 
 ## Backlog
 
-O GitHub possuía 73 issues abertas e 7 PRs abertas na última consulta. A
-classificação abaixo considera critério de aceite, código, testes e dependências
-externas; não equivale a fechar as issues antes do merge/revisão.
+O GitHub possuía 73 issues abertas e 7 PRs abertas na auditoria inicial. Ao fim,
+as 73 issues continuam abertas e existem 8 PRs, incluindo a nova PR final #88.
+A classificação abaixo considera critério de aceite, código, testes e
+dependências externas; não equivale a fechar as issues antes do merge/revisão.
 
 | Classe | Quantidade | Issues |
 | --- | ---: | --- |
