@@ -2,14 +2,15 @@
 
 ## Status executivo
 
-**NOT READY** enquanto a primeira execução remota desta branch não comprovar o
-job PostgreSQL 15. O código, a documentação e o gate local estão concluídos;
-esta classificação não antecipa evidência de CI, staging, frontend ou Infra.
+**TECHNICALLY READY FOR MAIN**. O head final passou os jobs `quality` e
+`postgres-15`; as pendências restantes são explicitamente externas e não são
+tratadas como aceite de staging, frontend, Produto ou Infra.
 
 - Branch: `integration/backend-completion-2026-11`
 - Base consolidada: `integration/presentation-2026-10-26`
 - Commit funcional inicial: `51afa10`
-- Relação com `origin/main` no push: 17 commits à frente, 0 atrás
+- Head de código validado: `6618682`
+- Relação com `origin/main` após o gate: 22 commits à frente, 0 atrás
 - Produção/Railway: não alterados
 - Merge em `main`: não realizado
 
@@ -21,8 +22,8 @@ externas; não equivale a fechar as issues antes do merge/revisão.
 
 | Classe | Quantidade | Issues |
 | --- | ---: | --- |
-| Implementadas tecnicamente | 60 | #4–#16, #18–#20, #22–#57, #59–#66 |
-| Parciais ou aguardando evidência | 7 | #17, #21, #58, #68–#71 |
+| Implementadas tecnicamente | 61 | #4–#16, #18–#20, #22–#66 |
+| Parciais ou aguardando evidência | 6 | #17, #21, #68–#71 |
 | Bloqueadas externamente | 3 | #67, #72, #82 |
 | Sem aplicabilidade como código | 3 | #73–#75 |
 | **Total** | **73** | |
@@ -33,12 +34,14 @@ Detalhamento das exceções:
 - #21/BE-019: OFF e adapters/testes de USDA/TBCA existem; uso real de USDA
   exige chave válida e TBCA permanece desabilitada até haver API/contrato oficial
   adequado. Nenhum scraping ou segredo foi inventado.
-- #58/BE-058 e #69/BE-070: massa e planos reproduzíveis foram implementados;
-  faltam a execução PostgreSQL da CI e uma carga real autorizada em staging.
+- #58/BE-058: baseline e planos críticos foram medidos no PostgreSQL 15 da CI;
+  os nove índices esperados foram confirmados.
+- #69/BE-070: a análise reproduzível não encontrou gargalo que justificasse
+  mudança de baixo risco; carga HTTP real ainda depende de staging autorizado.
 - #68/BE-068: revisão local cobre autorização, CORS, rate limit e secrets; o
   critério original também depende de deploy disponível.
 - #70/BE-069: massa sintética, migrations vazia/legada e seed são reproduzíveis;
-  falta evidência da execução real na CI e homologação da massa de demo.
+  a CI real passou, mas a homologação da massa de demo permanece externa.
 - #71/BE-072: regressão local passou; o critério exige ambiente final estável.
 - #67/BE-066: smoke e release candidate dependem de ambiente implantado e
   checklist assinado.
@@ -113,7 +116,8 @@ Gate local executado em Node 24.16.0/npm 11.13.0:
 | Cobertura | 81,81% statements; 68,45% branches; 75,67% functions; 82,54% lines |
 | Audit de produção | 0 vulnerabilidades altas/críticas |
 | Whitespace/segredos | Diff limpo; scan local sem padrões de credenciais |
-| PostgreSQL 15 real | Pendente da CI remota; não substituído por mock |
+| PostgreSQL 15 real | 9/9 casos aprovados no head `6618682` |
+| GitHub Actions | `quality` e `postgres-15` aprovados |
 
 Os E2E cobrem fluxos positivos/negativos, isolamento entre usuários, retries,
 rollback, timezone, pontuação, feed, ranking, compra e equipamento. O job real
@@ -151,6 +155,11 @@ em refeições, feed, ledger e alimentos. Ela registra `EXPLAIN ANALYZE` para os
 hot paths e confirma nove índices críticos. O harness `npm run perf:smoke`
 produz p50/p95/máximo em staging mediante URL/token explícitos.
 
+Na execução aprovada, os tempos de execução observados foram 0,027 ms para
+histórico nutricional, 0,022 ms para refeições, 0,027 ms para feed, 0,017 ms
+para ledger e 0,014 ms para barcode. São uma baseline do runner descartável,
+não um SLO de produção.
+
 A busca local por nome mantém substring (`LIKE %termo%`), que pode fazer scan
 sequencial em catálogo grande. `pg_trgm` ou alteração para prefixo/full text
 deve ser aprovada e medida no PostgreSQL gerenciado; não foi introduzida uma
@@ -165,9 +174,8 @@ extensão operacional sem validação do ambiente.
   substituí-lo sem mudar o contrato persistido.
 - Integrações USDA/TBCA reais, frontend, staging, Railway, carga e deploy são
   externos a esta branch.
-- Não há evidência local de PostgreSQL real porque o Docker Desktop estava
-  indisponível; a CI foi criada justamente para produzir essa prova sem fingir
-  aprovação.
+- O Docker Desktop local permaneceu indisponível; a evidência real foi produzida
+  no PostgreSQL 15 descartável da CI, sem fallback para mock.
 
 ## Integração frontend
 
@@ -177,17 +185,17 @@ humano implícito neste relatório.
 
 ## Prontidão para `main`
 
-Status atual: **NOT READY**.
+Status atual: **TECHNICALLY READY FOR MAIN**.
 
-Para promover a **TECHNICALLY READY FOR MAIN**, é obrigatório:
+Evidências técnicas satisfeitas:
 
 1. CI `quality` e `postgres-15` verdes no head final da PR.
-2. Revisão humana do diff/migration e confirmação de ausência de deploy
-   automático indesejado.
-3. Rebase/merge check sem conflitos com a `main` atual.
-4. Registro explícito das pendências externas acima como não bloqueantes ou
-   como critérios de release, conforme decisão dos responsáveis.
+2. PR #88 mergeável e branch 0 commits atrás da `main`.
+3. Gate local, migrations, SQL, concorrência, performance, cobertura e audit
+   aprovados.
+4. Pendências externas identificadas sem alegação de aceite.
 
-Mesmo após esses itens, a PR deve ser revisada e mesclada por uma pessoa; esta
+Antes do merge, a PR deve ser revisada e mesclada por uma pessoa, que também
+deve confirmar a ausência de deploy automático indesejado. Esta
 execução não faz merge na `main`, não promove produção e não encerra issues que
 dependem do merge ou de validação humana.

@@ -24,7 +24,7 @@ Last updated: 2026-11-09 (America/Sao_Paulo)
 | `npm test -- --runInBand` | 17 suites / 112 tests passed |
 | `npm run docs:dbml` | 23 tables, 11 enums, 55 indexes/PKs, 29 FKs and 50 checks matched the baseline contract |
 | `npm audit --omit=dev --audit-level=high` | 0 production vulnerabilities |
-| PostgreSQL 15 real | Not run locally: Docker Desktop daemon unavailable. Must run in GitHub Actions before technical readiness can be declared. |
+| PostgreSQL 15 real | Docker Desktop local unavailable; GitHub Actions passed 9/9 integration cases on head `6618682`. |
 
 ## Backlog reconciliation
 
@@ -75,10 +75,11 @@ GitHub issue numbers are intentionally kept separate from BE task codes.
 14. First PR CI iteration: `quality` passed; `postgres-15` exposed an unterminated PL/pgSQL dollar quote before schema creation. Fixed the migration delimiter in `5faab65`; no test was mocked or relaxed.
 15. Second PR CI iteration: migrations, SQL integrity, performance and concurrent purchases passed on PostgreSQL 15. The remaining failures exposed preflight semantics after both known migrations and four physical CHECKs absent from entity metadata; both verifiers were corrected without dropping constraints.
 16. Third PR CI iteration: 8/9 real PostgreSQL cases passed; the only failure was non-zero schema-builder SQL for five defaults and one partial index. Entity metadata was aligned with the already-correct physical schema; no migration or public contract changed.
+17. Final PR CI on `6618682`: `quality` and `postgres-15` passed. The PR is mergeable, 0 commits behind `main`, and the delivery status is `TECHNICALLY READY FOR MAIN` pending human review/merge.
 
 ## External blockers (do not misreport as completed)
 
 - Frontend approval of the identity contract.
 - Live USDA use requires a valid API key; live TBCA use requires an official suitable API/contract. Adapters and fixtures can still be implemented and tested.
 - Railway preview diagnosis (#82), staging smoke tests, production/deployment approval and human presentation duties.
-- A successful GitHub Actions run with PostgreSQL 15 is required before `TECHNICALLY READY FOR MAIN`.
+- GitHub Actions evidence is complete; human review/merge and external release validation remain intentionally separate.
