@@ -152,6 +152,7 @@ export class BackendCompletionCore1794096000000 implements MigrationInterface {
         END IF;
         RAISE EXCEPTION 'point_transactions is an immutable ledger';
       END;
+      $$;
       CREATE TRIGGER point_transactions_immutable_trigger
         BEFORE UPDATE OR DELETE ON public.point_transactions
         FOR EACH ROW EXECUTE FUNCTION public.reject_point_transaction_mutation();
