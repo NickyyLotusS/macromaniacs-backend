@@ -33,6 +33,8 @@ describe('Gamification ledger and outbox (e2e)', () => {
   });
 
   it('awards an idempotent capped ledger, mission and first-meal achievement', async () => {
+    const testDate = new Date().toISOString().slice(0, 10);
+
     await request(app.getHttpServer())
       .post('/v1/auth/register')
       .send({
@@ -68,7 +70,7 @@ describe('Gamification ledger and outbox (e2e)', () => {
         .set('Idempotency-Key', `game-meal-${index}`)
         .send({
           name: `Refeição ${index}`,
-          consumedAt: `2026-11-08T${String(10 + index).padStart(2, '0')}:00:00.000Z`,
+          consumedAt: `${testDate}T${String(10 + index).padStart(2, '0')}:00:00.000Z`,
           items: [{ foodId: food.body.id, amountGrams: 100 }],
         })
         .expect(201);
@@ -82,7 +84,7 @@ describe('Gamification ledger and outbox (e2e)', () => {
       currentStreak: 1,
       bestStreak: 1,
       totalPoints: 40,
-      lastActivityDate: '2026-11-08',
+      lastActivityDate: testDate,
       scoringVersion: '2026-11-v1',
     });
 
@@ -99,7 +101,7 @@ describe('Gamification ledger and outbox (e2e)', () => {
     ).toBe(40);
 
     const missions = await request(app.getHttpServer())
-      .get('/v1/gamification/missions?date=2026-11-08')
+      .get(`/v1/gamification/missions?date=${testDate}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
     expect(missions.body).toContainEqual(
