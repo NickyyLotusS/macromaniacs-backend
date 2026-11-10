@@ -24,6 +24,7 @@ import type { PostReaction } from '../social/post-reaction.entity';
 )
 @Index('feed_posts_group_id_created_at_idx', { synchronize: false })
 @Index('feed_posts_user_id_created_at_idx', { synchronize: false })
+@Index('feed_posts_group_id_meal_log_id_key', { synchronize: false })
 @Index('feed_posts_meal_log_id_idx', ['mealLogId'])
 @Entity('feed_posts')
 export class FeedPost {

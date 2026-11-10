@@ -49,6 +49,13 @@ export class PlannedMeal {
   @Column({ name: 'order_index', type: 'integer', default: 1 })
   orderIndex!: number;
 
+  @Column({
+    name: 'scheduled_time',
+    type: 'time without time zone',
+    nullable: true,
+  })
+  scheduledTime!: string | null;
+
   @Column({ name: 'target_calories', type: 'integer', nullable: true })
   targetCalories: number | null;
 

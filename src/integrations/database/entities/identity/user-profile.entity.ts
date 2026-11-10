@@ -37,6 +37,10 @@ import type { User } from '../identity/user.entity';
   'user_profiles_avatar_config_check',
   "(jsonb_typeof(avatar_config) = 'object'::text)",
 )
+@Check(
+  'user_profiles_timezone_not_blank_check',
+  '(length(btrim((timezone)::text)) > 0)',
+)
 @Entity('user_profiles')
 export class UserProfile {
   @PrimaryColumn({
@@ -46,27 +50,35 @@ export class UserProfile {
   })
   userId!: string;
 
-  @Column({ name: 'birth_date', type: 'date' })
-  birthDate!: string;
+  @Column({ name: 'birth_date', type: 'date', nullable: true })
+  birthDate!: string | null;
 
   @Column({
     name: 'biological_sex',
     type: 'enum',
     enum: BiologicalSex,
     enumName: 'BiologicalSex',
+    nullable: true,
   })
-  biologicalSex!: BiologicalSex;
+  biologicalSex!: BiologicalSex | null;
 
-  @Column({ name: 'height_cm', type: 'numeric', precision: 5, scale: 2 })
-  heightCm!: string;
+  @Column({
+    name: 'height_cm',
+    type: 'numeric',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
+  heightCm!: string | null;
 
   @Column({
     name: 'current_weight_kg',
     type: 'numeric',
     precision: 5,
     scale: 2,
+    nullable: true,
   })
-  currentWeightKg!: string;
+  currentWeightKg!: string | null;
 
   @Column({
     name: 'target_weight_kg',
@@ -83,16 +95,33 @@ export class UserProfile {
   @Column({ name: 'dietary_restrictions_note', type: 'text', nullable: true })
   dietaryRestrictionsNote: string | null;
 
-  @Column({ name: 'goal', type: 'enum', enum: UserGoal, enumName: 'UserGoal' })
-  goal!: UserGoal;
+  @Column({
+    name: 'goal',
+    type: 'enum',
+    enum: UserGoal,
+    enumName: 'UserGoal',
+    nullable: true,
+  })
+  goal!: UserGoal | null;
 
   @Column({
     name: 'activity_level',
     type: 'enum',
     enum: ActivityLevel,
     enumName: 'ActivityLevel',
+    nullable: true,
   })
-  activityLevel!: ActivityLevel;
+  activityLevel!: ActivityLevel | null;
+
+  @Column({ name: 'timezone', type: 'varchar', length: 64, default: 'UTC' })
+  timezone!: string;
+
+  @Column({
+    name: 'onboarding_completed_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  onboardingCompletedAt!: Date | null;
 
   @Column({ name: 'avatar_config', type: 'jsonb', default: {} })
   avatarConfig!: Record<string, unknown>;

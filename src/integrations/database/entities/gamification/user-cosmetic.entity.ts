@@ -34,6 +34,9 @@ export class UserCosmetic {
   })
   acquiredAt!: Date;
 
+  @Column({ name: 'is_equipped', type: 'boolean', default: false })
+  isEquipped!: boolean;
+
   @ManyToOne('User', 'cosmetics', {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

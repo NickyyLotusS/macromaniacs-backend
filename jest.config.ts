@@ -8,7 +8,7 @@ const preset = createDefaultEsmPreset({
 const config: Config = {
   ...preset,
   rootDir: '.',
-  testRegex: '.*\\.spec\\.ts$',
+  testRegex: '.*\\.(?:e2e-spec|spec)\\.ts$',
   collectCoverageFrom: ['src/**/*.(t|j)s'],
   coverageDirectory: './coverage',
   testEnvironment: 'node',

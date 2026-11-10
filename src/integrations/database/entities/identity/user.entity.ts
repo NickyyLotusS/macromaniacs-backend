@@ -26,6 +26,8 @@ import type { UserAchievement } from '../gamification/user-achievement.entity';
 import type { UserDailyMission } from '../gamification/user-daily-mission.entity';
 import type { UserCosmetic } from '../gamification/user-cosmetic.entity';
 import type { Group } from '../social/group.entity';
+import type { UserTermsAcceptance } from './user-terms-acceptance.entity';
+import type { DailyNutritionSnapshot } from '../nutrition/daily-nutrition-snapshot.entity';
 
 @Check(
   'users_email_format_check',
@@ -57,7 +59,12 @@ export class User {
   @Column({ name: 'email', type: 'varchar', length: 255 })
   email!: string;
 
-  @Column({ name: 'password_hash', type: 'varchar', length: 255 })
+  @Column({
+    name: 'password_hash',
+    type: 'varchar',
+    length: 255,
+    select: false,
+  })
   passwordHash!: string;
 
   @Column({ name: 'username', type: 'varchar', length: 50 })
@@ -127,4 +134,10 @@ export class User {
 
   @OneToMany('Group', 'creator')
   createdGroups!: Relation<Group>[];
+
+  @OneToMany('UserTermsAcceptance', 'user')
+  termsAcceptances!: Relation<UserTermsAcceptance>[];
+
+  @OneToMany('DailyNutritionSnapshot', 'user')
+  nutritionSnapshots!: Relation<DailyNutritionSnapshot>[];
 }

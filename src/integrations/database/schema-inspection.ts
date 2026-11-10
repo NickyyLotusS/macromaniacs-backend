@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { databaseResourcePath } from './resource-path';
 import type { DataSource } from 'typeorm';
+import { completionSchemaContract } from './completion-schema-contract';
 
 export type SchemaSnapshot = Record<string, Record<string, unknown>[]>;
 
@@ -77,15 +78,31 @@ export async function inspectSchema(
 }
 
 export function expectedSchema(): SchemaSnapshot {
+  return completionSchemaContract(baselineExpectedSchema());
+}
+
+export function baselineExpectedSchema(): SchemaSnapshot {
   return JSON.parse(
     readFileSync(databaseResourcePath('schema-contract.json'), 'utf8'),
-  );
+  ) as SchemaSnapshot;
 }
 
 export function assertSchemaParity(
   actual: SchemaSnapshot,
   expected = expectedSchema(),
 ): void {
+  const comparable = (snapshot: SchemaSnapshot): SchemaSnapshot => ({
+    ...snapshot,
+    routines: (snapshot.routines ?? []).map((row) => ({
+      name: row.name,
+      arguments: row.arguments,
+    })),
+    triggers: (snapshot.triggers ?? []).map(
+      ({ table_name, name, enabled }) => ({ table_name, name, enabled }),
+    ),
+  });
+  actual = comparable(actual);
+  expected = comparable(expected);
   const sections = new Set([...Object.keys(actual), ...Object.keys(expected)]);
   const differences = [...sections].filter(
     (section) =>

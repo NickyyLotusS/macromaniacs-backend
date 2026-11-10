@@ -16,6 +16,10 @@ import type { User } from '../identity/user.entity';
   '((current_streak >= 0) AND (best_streak >= current_streak))',
 )
 @Check('user_stats_total_points_check', '(total_points >= 0)')
+@Check(
+  'user_stats_timezone_not_blank_check',
+  '(length(btrim((timezone)::text)) > 0)',
+)
 @Entity('user_stats')
 export class UserStats {
   @PrimaryColumn({
@@ -36,6 +40,12 @@ export class UserStats {
 
   @Column({ name: 'last_activity_at', type: 'timestamptz', nullable: true })
   lastActivityAt: Date | null;
+
+  @Column({ name: 'last_activity_date', type: 'date', nullable: true })
+  lastActivityDate: string | null;
+
+  @Column({ name: 'timezone', type: 'varchar', length: 64, default: 'UTC' })
+  timezone!: string;
 
   @CreateDateColumn({
     name: 'created_at',

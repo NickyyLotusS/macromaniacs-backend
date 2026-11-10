@@ -64,14 +64,6 @@ BEGIN
   END;
 
   BEGIN
-    INSERT INTO "user_profiles" ("user_id", "goal")
-    VALUES ('00000000-0000-0000-0000-000000000001', 'MAINTENANCE');
-    RAISE EXCEPTION 'Perfil incompleto foi aceito.';
-  EXCEPTION WHEN not_null_violation THEN
-    NULL;
-  END;
-
-  BEGIN
     INSERT INTO "foods" (
       "id", "name", "source", "calories_per_100g", "protein_per_100g",
       "carbs_per_100g", "fat_per_100g"
@@ -201,11 +193,11 @@ END $$;
 -- Metadados e casos adicionais do contrato definitivo.
 DO $$
 BEGIN
-  IF (SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename NOT IN ('_prisma_migrations','migrations')) <> 23 THEN
-    RAISE EXCEPTION 'Esperadas 23 tabelas de domínio.';
+  IF (SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename NOT IN ('_prisma_migrations','migrations')) <> 26 THEN
+    RAISE EXCEPTION 'Esperadas 26 tabelas de domínio.';
   END IF;
-  IF (SELECT count(*) FROM pg_constraint WHERE connamespace='public'::regnamespace AND contype='c') <> 50 THEN
-    RAISE EXCEPTION 'Esperadas 50 CHECK constraints.';
+  IF (SELECT count(*) FROM pg_constraint WHERE connamespace='public'::regnamespace AND contype='c') <> 60 THEN
+    RAISE EXCEPTION 'Esperadas 60 CHECK constraints.';
   END IF;
   BEGIN
     UPDATE users SET username='UpperCase' WHERE id='00000000-0000-0000-0000-000000000001';
@@ -268,8 +260,8 @@ DO $$ BEGIN
   EXCEPTION WHEN check_violation THEN NULL; END;
   BEGIN
     UPDATE point_transactions SET metadata='[]' WHERE id='21000000-0000-0000-0000-000000000001';
-    RAISE EXCEPTION 'Metadata não objeto foi aceito.';
-  EXCEPTION WHEN check_violation THEN NULL; END;
+    RAISE EXCEPTION 'Ledger imutável aceitou UPDATE.';
+  EXCEPTION WHEN raise_exception THEN NULL; END;
 END $$;
 
 INSERT INTO foods(id,name,source,external_id,calories_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g)
@@ -279,7 +271,7 @@ VALUES('12000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000
 INSERT INTO planned_meals(id,diet_plan_id,name) VALUES('13000000-0000-0000-0000-000000000001','12000000-0000-0000-0000-000000000001','Test meal');
 INSERT INTO planned_meal_items(id,planned_meal_id,food_id,amount_grams,calories,protein,carbs,fat)
 VALUES('14000000-0000-0000-0000-000000000001','13000000-0000-0000-0000-000000000001','11000000-0000-0000-0000-000000000001',50,50.25,5,10,0.50);
-INSERT INTO meal_logs(id,user_id,planned_meal_id,name) VALUES('15000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','13000000-0000-0000-0000-000000000001','Test consumed');
+INSERT INTO meal_logs(id,user_id,planned_meal_id,name,food_date) VALUES('15000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','13000000-0000-0000-0000-000000000001','Test consumed',DATE '2026-09-15');
 INSERT INTO meal_log_items(id,meal_log_id,food_id,amount_grams,calories,protein,carbs,fat,input_method)
 VALUES('16000000-0000-0000-0000-000000000001','15000000-0000-0000-0000-000000000001','11000000-0000-0000-0000-000000000001',50,50.25,5,10,0.50,'PLANNED_MEAL');
 DO $$ BEGIN

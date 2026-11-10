@@ -12,6 +12,7 @@ import { seedCatalogs } from '../../src/integrations/database/catalog-seed';
 import { assertPhysicalChecksMapped } from '../../src/integrations/database/check-mapping';
 import {
   assertSchemaParity,
+  baselineExpectedSchema,
   inspectSchema,
 } from '../../src/integrations/database/schema-inspection';
 import { User } from '../../src/integrations/database/entities/identity/user.entity';
@@ -23,6 +24,8 @@ import {
 } from '../../src/integrations/database/entities/enums';
 import { baselinePreflight } from '../../scripts/baseline-preflight';
 import { BASELINE_NAME } from '../../src/integrations/database/migrations/1789430400000-DefinitiveBaseline';
+import { COMPLETION_NAME } from '../../src/integrations/database/migrations/1794096000000-BackendCompletionCore';
+import { configureApplication } from '../../src/app.setup';
 
 jest.setTimeout(60000);
 
@@ -108,9 +111,12 @@ describe('PostgreSQL: Prisma × TypeORM em bancos descartáveis', () => {
       if (source?.isInitialized) await source.destroy();
   });
 
-  it('A: baseline cria 23 tabelas, 11 enums, 55 índices e 50 CHECKs; seed é idempotente', async () => {
+  it('A: baseline e migration aditiva criam o contrato completo; seed é idempotente', async () => {
     const applied = await empty.runMigrations({ transaction: 'all' });
-    expect(applied.map((migration) => migration.name)).toEqual([BASELINE_NAME]);
+    expect(applied.map((migration) => migration.name)).toEqual([
+      BASELINE_NAME,
+      COMPLETION_NAME,
+    ]);
     assertSchemaParity(await inspectSchema(empty));
     await seedCatalogs(empty);
     const first = await catalogs(empty);
@@ -157,12 +163,25 @@ describe('PostgreSQL: Prisma × TypeORM em bancos descartáveis', () => {
         ],
       );
     const beforeSchema = await inspectSchema(legacy);
-    assertSchemaParity(beforeSchema, await inspectSchema(empty));
+    assertSchemaParity(beforeSchema, baselineExpectedSchema());
     expect(await baselinePreflight(legacy)).toBe(false);
-    const before = await dataFingerprint(legacy);
+    const [{ usersBefore }] = (await legacy.query(
+      'SELECT count(*)::int AS "usersBefore" FROM users',
+    )) as Array<{ usersBefore: number }>;
+    const migrations = [...legacy.migrations];
+    legacy.migrations.splice(1);
     await legacy.runMigrations({ fake: true, transaction: 'all' });
-    expect(await dataFingerprint(legacy)).toBe(before);
-    assertSchemaParity(await inspectSchema(legacy), beforeSchema);
+    legacy.migrations.push(...migrations.slice(1));
+    expect(
+      (await legacy.runMigrations({ transaction: 'all' })).map(
+        (migration) => migration.name,
+      ),
+    ).toEqual([COMPLETION_NAME]);
+    assertSchemaParity(await inspectSchema(legacy), await inspectSchema(empty));
+    const [{ usersAfter }] = (await legacy.query(
+      'SELECT count(*)::int AS "usersAfter" FROM users',
+    )) as Array<{ usersAfter: number }>;
+    expect(usersAfter).toBe(usersBefore);
     expect(await baselinePreflight(legacy)).toBe(true);
     expect(await legacy.runMigrations({ transaction: 'all' })).toEqual([]);
     const first = await catalogs(legacy);
@@ -196,7 +215,7 @@ describe('PostgreSQL: Prisma × TypeORM em bancos descartáveis', () => {
     }
     const metadata = empty.getMetadata(UserProfile);
     expect(metadata.findColumnWithPropertyName('birthDate')?.isNullable).toBe(
-      false,
+      true,
     );
     expect(
       metadata.findColumnWithPropertyName('goal')?.default,
@@ -292,6 +311,165 @@ describe('PostgreSQL: Prisma × TypeORM em bancos descartáveis', () => {
     ).toBeNull();
   });
 
+  it('mede planos dos hot paths sobre massa sintética reproduzível', async () => {
+    const userId = '90000000-0000-0000-0000-000000000001';
+    const groupId = '91000000-0000-0000-0000-000000000001';
+    const metrics: Array<{
+      path: string;
+      planningMs: number;
+      executionMs: number;
+      rootNode: string;
+    }> = [];
+    const explain = async (
+      path: string,
+      query: string,
+      parameters: unknown[],
+    ) => {
+      const rows = (await empty.query(
+        `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ${query}`,
+        parameters,
+      )) as Array<{
+        'QUERY PLAN': Array<{
+          Plan: { 'Node Type': string };
+          'Planning Time': number;
+          'Execution Time': number;
+        }>;
+      }>;
+      const plan = rows[0]['QUERY PLAN'][0];
+      expect(Number.isFinite(plan['Planning Time'])).toBe(true);
+      expect(Number.isFinite(plan['Execution Time'])).toBe(true);
+      metrics.push({
+        path,
+        planningMs: plan['Planning Time'],
+        executionMs: plan['Execution Time'],
+        rootNode: plan.Plan['Node Type'],
+      });
+    };
+
+    await empty.query('BEGIN');
+    try {
+      await empty.query(
+        `INSERT INTO users(id,email,password_hash,username,display_name)
+         VALUES($1,'performance@example.com','test-hash','performance_user','Performance User')`,
+        [userId],
+      );
+      await empty.query(
+        `INSERT INTO user_stats(user_id,total_points,current_streak,best_streak,timezone)
+         VALUES($1,0,0,0,'UTC')`,
+        [userId],
+      );
+      await empty.query(
+        `INSERT INTO groups(id,name,invite_code,creator_id,is_private)
+         VALUES($1,'Performance Group','PERF0001',$2,true)`,
+        [groupId, userId],
+      );
+      await empty.query(
+        `INSERT INTO group_members(group_id,user_id,role)
+         VALUES($1,$2,'ADMIN')`,
+        [groupId, userId],
+      );
+      await empty.query(
+        `INSERT INTO daily_nutrition_snapshots
+          (user_id,food_date,timezone,calories,protein,carbs,fat,fiber,meal_count)
+         SELECT $1, DATE '2020-01-01' + value, 'UTC', 2000, 150, 200, 70, 25, 4
+         FROM generate_series(0,1999) AS value`,
+        [userId],
+      );
+      await empty.query(
+        `INSERT INTO meal_logs
+          (id,user_id,name,consumed_at,food_date,timezone)
+         SELECT ('92000000-0000-0000-0000-' || lpad(value::text,12,'0'))::uuid,
+                $1, 'Synthetic meal', TIMESTAMPTZ '2020-01-01 00:00:00Z' + value * INTERVAL '1 minute',
+                DATE '2020-01-01' + (value % 2000), 'UTC'
+         FROM generate_series(1,5000) AS value`,
+        [userId],
+      );
+      await empty.query(
+        `INSERT INTO feed_posts(id,group_id,user_id,content,created_at)
+         SELECT ('93000000-0000-0000-0000-' || lpad(value::text,12,'0'))::uuid,
+                $1, $2, 'Synthetic post ' || value,
+                TIMESTAMPTZ '2020-01-01 00:00:00Z' + value * INTERVAL '1 minute'
+         FROM generate_series(1,5000) AS value`,
+        [groupId, userId],
+      );
+      await empty.query(
+        `INSERT INTO point_transactions
+          (id,user_id,amount,reason,metadata,idempotency_key,source_type,created_at)
+         SELECT ('94000000-0000-0000-0000-' || lpad(value::text,12,'0'))::uuid,
+                $1, 1, 'ADMIN_ADJUSTMENT', '{}', 'perf-' || value, 'performance-test',
+                TIMESTAMPTZ '2020-01-01 00:00:00Z' + value * INTERVAL '1 minute'
+         FROM generate_series(1,5000) AS value`,
+        [userId],
+      );
+      await empty.query(
+        `INSERT INTO foods
+          (id,name,source,barcode,calories_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g,fiber_per_100g)
+         SELECT ('95000000-0000-0000-0000-' || lpad(value::text,12,'0'))::uuid,
+                'Synthetic Food ' || lpad(value::text,5,'0'), 'MANUAL',
+                '99000' || lpad(value::text,7,'0'), 100, 10, 15, 2, 3
+         FROM generate_series(1,5000) AS value`,
+      );
+      await empty.query(
+        'ANALYZE daily_nutrition_snapshots, meal_logs, feed_posts, point_transactions, foods',
+      );
+
+      await explain(
+        'nutrition history',
+        `SELECT * FROM daily_nutrition_snapshots
+         WHERE user_id=$1 AND food_date BETWEEN DATE '2023-01-01' AND DATE '2025-12-31'
+         ORDER BY food_date DESC LIMIT 20`,
+        [userId],
+      );
+      await explain(
+        'meal history',
+        `SELECT * FROM meal_logs
+         WHERE user_id=$1 AND deleted_at IS NULL
+         ORDER BY consumed_at DESC LIMIT 20`,
+        [userId],
+      );
+      await explain(
+        'group feed',
+        `SELECT * FROM feed_posts
+         WHERE group_id=$1 ORDER BY created_at DESC,id DESC LIMIT 20`,
+        [groupId],
+      );
+      await explain(
+        'points ledger and balance',
+        `SELECT amount,created_at FROM point_transactions
+         WHERE user_id=$1 ORDER BY created_at DESC LIMIT 20`,
+        [userId],
+      );
+      await explain('food barcode', `SELECT * FROM foods WHERE barcode=$1`, [
+        '9900000005000',
+      ]);
+
+      const indexes = (
+        (await empty.query(
+          `SELECT indexname FROM pg_indexes
+           WHERE schemaname='public' AND indexname = ANY($1::text[])
+           ORDER BY indexname`,
+          [
+            [
+              'foods_barcode_key',
+              'foods_name_idx',
+              'meal_logs_user_id_consumed_at_idx',
+              'meal_logs_user_id_food_date_idx',
+              'daily_nutrition_snapshots_user_id_food_date_idx',
+              'group_members_user_id_idx',
+              'feed_posts_group_id_created_at_idx',
+              'point_transactions_user_id_created_at_idx',
+              'user_cosmetics_pkey',
+            ],
+          ],
+        )) as Array<{ indexname: string }>
+      ).map((row) => row.indexname);
+      expect(indexes).toHaveLength(9);
+      console.log('PERFORMANCE_BASELINE', JSON.stringify(metrics));
+    } finally {
+      await empty.query('ROLLBACK');
+    }
+  });
+
   it('preflight rejeita schema divergente, histórico falho e controle TypeORM desconhecido', async () => {
     await legacy.query(
       'ALTER TABLE users ADD CONSTRAINT unmapped_test_check CHECK (length(email)>0)',
@@ -333,6 +511,94 @@ describe('PostgreSQL: Prisma × TypeORM em bancos descartáveis', () => {
         expect(app.get(DataSource)).toBeInstanceOf(DatabaseSource);
         expect(app.get(DataSource).options.synchronize).toBe(false);
         await request(app.getHttpServer()).get('/health/ready').expect(200);
+      } finally {
+        await app.close();
+      }
+    } finally {
+      if (previous === undefined) delete process.env.DATABASE_URL;
+      else process.env.DATABASE_URL = previous;
+    }
+  });
+
+  it('serializa compras concorrentes e preserva saldo/inventário atômicos', async () => {
+    const previous = process.env.DATABASE_URL;
+    process.env.DATABASE_URL = emptyUrl;
+    try {
+      const { AppModule } = await import('../../src/app.module.js');
+      const module = await Test.createTestingModule({
+        imports: [AppModule],
+      }).compile();
+      const app = module.createNestApplication();
+      configureApplication(app);
+      try {
+        await app.init();
+        await request(app.getHttpServer())
+          .post('/v1/auth/register')
+          .send({
+            email: 'concurrent@example.com',
+            username: 'concurrent_user',
+            password: 'strong-password-123',
+            termsAccepted: true,
+          })
+          .expect(201);
+        const login = await request(app.getHttpServer())
+          .post('/v1/auth/login')
+          .send({
+            identifier: 'concurrent_user',
+            password: 'strong-password-123',
+          })
+          .expect(200);
+        const [{ id: userId }] = (await empty.query(
+          "SELECT id FROM users WHERE username='concurrent_user'",
+        )) as Array<{ id: string }>;
+        await empty.query(
+          `INSERT INTO point_transactions
+            (id,user_id,amount,reason,metadata,idempotency_key,source_type)
+           VALUES($1,$2,100,'ADMIN_ADJUSTMENT','{}','concurrency-credit','integration-test')`,
+          [randomUUID(), userId],
+        );
+        await empty.query(
+          'UPDATE user_stats SET total_points=100 WHERE user_id=$1',
+          [userId],
+        );
+        const catalog = await request(app.getHttpServer())
+          .get('/v1/rewards/catalog')
+          .expect(200);
+        const itemId = catalog.body[0].id as string;
+        const token = login.body.accessToken as string;
+        const results = await Promise.all([
+          request(app.getHttpServer())
+            .post(`/v1/rewards/purchases/${itemId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .set('Idempotency-Key', 'concurrent-a'),
+          request(app.getHttpServer())
+            .post(`/v1/rewards/purchases/${itemId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .set('Idempotency-Key', 'concurrent-b'),
+        ]);
+        expect(results.map((result) => result.status).sort()).toEqual([
+          201, 409,
+        ]);
+        expect(
+          await empty.query(
+            'SELECT total_points FROM user_stats WHERE user_id=$1',
+            [userId],
+          ),
+        ).toEqual([{ total_points: 50 }]);
+        expect(
+          await empty.query(
+            'SELECT count(*)::int AS count FROM user_cosmetics WHERE user_id=$1',
+            [userId],
+          ),
+        ).toEqual([{ count: 1 }]);
+        expect(
+          await empty.query(
+            `SELECT count(*)::int AS count FROM point_transactions
+             WHERE user_id=$1 AND reason='COSMETIC_PURCHASE'`,
+            [userId],
+          ),
+        ).toEqual([{ count: 1 }]);
+        await empty.query('DELETE FROM users WHERE id=$1', [userId]);
       } finally {
         await app.close();
       }

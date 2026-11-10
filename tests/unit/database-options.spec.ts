@@ -20,14 +20,14 @@ describe('Configuração de banco', () => {
     ).rejects.toThrow('destrutivo');
     expect(calls).toBe(1);
   });
-  it('carrega 23 entidades e só a baseline, sem mutações automáticas', () => {
+  it('carrega 26 entidades e as migrations revisadas, sem mutações automáticas', () => {
     const options = databaseOptions(
       'postgresql://user:example@localhost:5433/example',
     );
     expect(options.synchronize).toBe(false);
     expect(options.migrationsRun).toBe(false);
-    expect(options.entities).toHaveLength(23);
-    expect(options.migrations).toHaveLength(1);
+    expect(options.entities).toHaveLength(26);
+    expect(options.migrations).toHaveLength(2);
     expect(options).toHaveProperty('installExtensions', false);
   });
   it.each([
@@ -39,14 +39,27 @@ describe('Configuração de banco', () => {
     expect(() => validateDatabaseUrl(url)).toThrow();
   });
   it('valida ambiente, porta e normaliza whitespace da URL sem logar segredos', () => {
+    const authConfig = {
+      JWT_SECRET: 'a-valid-test-secret-with-more-than-32-characters',
+      JWT_EXPIRES_IN: '1h',
+      CORS_ORIGINS: 'http://localhost:5173',
+    };
     expect(
-      validate({ DATABASE_URL: ' postgresql://user@localhost/db ' }),
+      validate({
+        ...authConfig,
+        DATABASE_URL: ' postgresql://user@localhost/db ',
+      }),
     ).toHaveProperty('DATABASE_URL', 'postgresql://user@localhost/db');
     expect(() =>
-      validate({ DATABASE_URL: 'postgresql://user@localhost/db', APP_PORT: 0 }),
+      validate({
+        ...authConfig,
+        DATABASE_URL: 'postgresql://user@localhost/db',
+        APP_PORT: 0,
+      }),
     ).toThrow();
     expect(() =>
       validate({
+        ...authConfig,
         DATABASE_URL: 'postgresql://user@localhost/db',
         APP_ENV: 'invalid',
       }),

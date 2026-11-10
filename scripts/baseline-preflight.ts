@@ -4,12 +4,19 @@ import { resolve } from 'node:path';
 import type { DataSource } from 'typeorm';
 import {
   assertSchemaParity,
+  baselineExpectedSchema,
   inspectSchema,
 } from '../src/integrations/database/schema-inspection';
 import { BASELINE_NAME } from '../src/integrations/database/migrations/1789430400000-DefinitiveBaseline';
+import { COMPLETION_NAME } from '../src/integrations/database/migrations/1794096000000-BackendCompletionCore';
 
 export async function baselinePreflight(source: DataSource): Promise<boolean> {
-  assertSchemaParity(await inspectSchema(source));
+  const schema = await inspectSchema(source);
+  try {
+    assertSchemaParity(schema);
+  } catch {
+    assertSchemaParity(schema, baselineExpectedSchema());
+  }
   const [{ history }] = await source.query(
     "SELECT to_regclass('public._prisma_migrations') AS history",
   );
@@ -45,15 +52,22 @@ export async function baselinePreflight(source: DataSource): Promise<boolean> {
   const applied = await source.query(
     'SELECT name, timestamp FROM public.migrations ORDER BY id',
   );
+  const known = [
+    { name: BASELINE_NAME, timestamp: '1789430400000' },
+    { name: COMPLETION_NAME, timestamp: '1794096000000' },
+  ];
   if (
-    applied.some(
-      (row: { name: string; timestamp: string }) =>
-        row.name !== BASELINE_NAME || String(row.timestamp) !== '1789430400000',
-    ) ||
-    applied.length > 1
+    applied.some((row: { name: string; timestamp: string }, index: number) => {
+      const expected = known[index];
+      return (
+        !expected ||
+        expected.name !== row.name ||
+        expected.timestamp !== String(row.timestamp)
+      );
+    })
   )
     throw new Error(
       'Migrations TypeORM desconhecidas: interrompa a transição.',
     );
-  return applied.length === 1;
+  return applied.length > 0;
 }
