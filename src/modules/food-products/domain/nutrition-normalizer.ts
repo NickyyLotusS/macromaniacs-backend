@@ -51,22 +51,26 @@ export class NutritionNormalizer {
         food.nutrients.caloriesKcal,
         'caloriesKcal',
         basis,
+        900,
       ),
       proteinPer100g: this.per100g(
         food.nutrients.proteinGrams,
         'proteinGrams',
         basis,
+        100,
       ),
       carbsPer100g: this.per100g(
         food.nutrients.carbohydrateGrams,
         'carbohydrateGrams',
         basis,
+        100,
       ),
-      fatPer100g: this.per100g(food.nutrients.fatGrams, 'fatGrams', basis),
+      fatPer100g: this.per100g(food.nutrients.fatGrams, 'fatGrams', basis, 100),
       fiberPer100g: this.per100g(
         food.nutrients.fiberGrams ?? '0',
         'fiberGrams',
         basis,
+        100,
       ),
       servingSizeG: this.toFixed2(
         this.parsePositiveDecimal(
@@ -78,7 +82,12 @@ export class NutritionNormalizer {
     };
   }
 
-  private per100g(value: string, field: string, basis: ParsedDecimal): string {
+  private per100g(
+    value: string,
+    field: string,
+    basis: ParsedDecimal,
+    maximum: number,
+  ): string {
     const nutrient = this.parseDecimal(value, field);
     if (nutrient.coefficient < 0n) {
       throw new FoodNormalizationError(field, 'must not be negative');
@@ -87,7 +96,14 @@ export class NutritionNormalizer {
     const numerator =
       nutrient.coefficient * 10_000n * this.powerOfTen(basis.scale);
     const denominator = basis.coefficient * this.powerOfTen(nutrient.scale);
-    return this.formatCents(this.roundDivide(numerator, denominator));
+    const cents = this.roundDivide(numerator, denominator);
+    if (cents > BigInt(maximum * 100)) {
+      throw new FoodNormalizationError(
+        field,
+        `must not exceed ${maximum} per 100g`,
+      );
+    }
+    return this.formatCents(cents);
   }
 
   private parsePositiveDecimal(value: string, field: string): ParsedDecimal {

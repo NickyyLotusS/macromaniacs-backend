@@ -73,3 +73,16 @@ export class FoodListResponseDto {
   @ApiProperty({ type: PaginationMetaDto })
   meta!: PaginationMetaDto;
 }
+
+export enum FoodExternalSearchStatus {
+  AVAILABLE = 'AVAILABLE',
+  UNAVAILABLE = 'UNAVAILABLE',
+}
+
+export class FoodSuggestionsResponseDto {
+  @ApiProperty({ type: [FoodResponseDto] })
+  items!: FoodResponseDto[];
+
+  @ApiProperty({ enum: FoodExternalSearchStatus })
+  externalStatus!: FoodExternalSearchStatus;
+}

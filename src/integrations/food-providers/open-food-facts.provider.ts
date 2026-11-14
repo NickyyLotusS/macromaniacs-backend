@@ -8,15 +8,20 @@ import type {
 } from '../../modules/food-products/domain/food-provider';
 import { FoodProviderResponseError } from './provider-errors';
 import { ResilientFetchService } from './resilient-fetch.service';
+import { normalizeFoodSearchQuery } from '../../modules/food-products/domain/food-search';
 
 type OffProduct = {
   code?: string;
   product_name?: string;
+  product_name_pt?: string;
+  generic_name?: string;
+  generic_name_pt?: string;
+  brands?: string | string[];
   serving_quantity?: number | string;
   nutriments?: Record<string, number | string | undefined>;
 };
 type OffProductResponse = { status?: number; product?: OffProduct };
-type OffSearchResponse = { products?: OffProduct[] };
+type OffSearchResponse = { hits?: OffProduct[] };
 
 @Injectable()
 export class OpenFoodFactsProvider implements FoodProvider {
@@ -40,29 +45,55 @@ export class OpenFoodFactsProvider implements FoodProvider {
       'open-food-facts',
       url,
       this.headers(),
+      {
+        rateLimit: {
+          key: 'open-food-facts-product',
+          maxRequests:
+            this.config.get<number>('OPEN_FOOD_FACTS_PRODUCT_RATE_LIMIT_MAX') ??
+            12,
+          windowMs: 60_000,
+        },
+      },
     );
     if (!body || body.status === 0 || !body.product) return null;
     return this.map(body.product, barcode);
   }
 
   async search(query: FoodSearchQuery): Promise<ProviderFood[]> {
-    const url = new URL('/cgi/search.pl', this.baseUrl());
-    url.searchParams.set('search_terms', query.query);
-    url.searchParams.set('search_simple', '1');
-    url.searchParams.set('action', 'process');
-    url.searchParams.set('json', '1');
+    const url = new URL('/search', this.searchBaseUrl());
+    url.searchParams.set('q', this.portugueseQuery(query.query));
+    url.searchParams.set('langs', 'pt,en');
     url.searchParams.set('page', String(query.page));
     url.searchParams.set('page_size', String(query.limit));
+    url.searchParams.set('boost_phrase', 'true');
     url.searchParams.set(
       'fields',
-      'code,product_name,serving_quantity,nutriments',
+      [
+        'code',
+        'product_name',
+        'product_name_pt',
+        'generic_name',
+        'generic_name_pt',
+        'brands',
+        'serving_quantity',
+        'nutriments',
+      ].join(','),
     );
     const body = await this.http.json<OffSearchResponse>(
       'open-food-facts',
       url,
       this.headers(),
+      {
+        rateLimit: {
+          key: 'open-food-facts-search',
+          maxRequests:
+            this.config.get<number>('OPEN_FOOD_FACTS_SEARCH_RATE_LIMIT_MAX') ??
+            8,
+          windowMs: 60_000,
+        },
+      },
     );
-    return (body?.products ?? [])
+    return (body?.hits ?? [])
       .map((product) => {
         try {
           return this.map(product, product.code);
@@ -74,7 +105,20 @@ export class OpenFoodFactsProvider implements FoodProvider {
   }
 
   private map(product: OffProduct, barcode?: string): ProviderFood {
-    const name = product.product_name?.trim();
+    const productName =
+      product.product_name_pt?.trim() ||
+      product.product_name?.trim() ||
+      product.generic_name_pt?.trim() ||
+      product.generic_name?.trim();
+    const brand = Array.isArray(product.brands)
+      ? product.brands.find((entry) => entry.trim())?.trim()
+      : product.brands?.trim();
+    const name =
+      productName &&
+      brand &&
+      !productName.toLowerCase().includes(brand.toLowerCase())
+        ? `${productName} (${brand})`
+        : productName;
     const externalId = product.code?.trim() || barcode?.trim();
     if (!name || !externalId) {
       throw new FoodProviderResponseError(
@@ -124,6 +168,29 @@ export class OpenFoodFactsProvider implements FoodProvider {
       this.config.get<string>('OPEN_FOOD_FACTS_BASE_URL') ??
       'https://world.openfoodfacts.org'
     );
+  }
+
+  private searchBaseUrl(): string {
+    return (
+      this.config.get<string>('OPEN_FOOD_FACTS_SEARCH_BASE_URL') ??
+      'https://search.openfoodfacts.org'
+    );
+  }
+
+  private portugueseQuery(value: string): string {
+    const accents: Record<string, string> = {
+      acai: 'açaí',
+      acucar: 'açúcar',
+      feijao: 'feijão',
+      grao: 'grão',
+      limao: 'limão',
+      mamao: 'mamão',
+      pao: 'pão',
+    };
+    return normalizeFoodSearchQuery(value)
+      .split(' ')
+      .map((word) => accents[word] ?? word)
+      .join(' ');
   }
 
   private headers(): Record<string, string> {

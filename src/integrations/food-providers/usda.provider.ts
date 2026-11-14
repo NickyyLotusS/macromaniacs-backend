@@ -74,7 +74,18 @@ export class UsdaFoodDataProvider implements FoodProvider {
     url.searchParams.set('query', query);
     url.searchParams.set('pageNumber', String(page));
     url.searchParams.set('pageSize', String(limit));
-    const body = await this.http.json<UsdaSearchResponse>('usda', url);
+    const body = await this.http.json<UsdaSearchResponse>(
+      'usda',
+      url,
+      {},
+      {
+        rateLimit: {
+          key: 'usda-search',
+          maxRequests: this.config.get<number>('USDA_RATE_LIMIT_MAX') ?? 900,
+          windowMs: 60 * 60_000,
+        },
+      },
+    );
     return body?.foods ?? [];
   }
 

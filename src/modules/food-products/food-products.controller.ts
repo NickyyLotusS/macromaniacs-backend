@@ -24,8 +24,10 @@ import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { CreateManualFoodDto } from './dto/create-manual-food.dto';
 import { FoodListResponseDto, FoodResponseDto } from './dto/food-response.dto';
 import { SearchFoodsQueryDto } from './dto/search-foods-query.dto';
+import { FoodSuggestionsQueryDto } from './dto/food-suggestions-query.dto';
 import { FoodCacheService } from './food-cache.service';
 import { FoodLookupService } from './food-lookup.service';
+import { FoodSuggestionsResponseDto } from './dto/food-response.dto';
 
 @ApiTags('foods')
 @Controller({ path: 'foods', version: '1' })
@@ -41,6 +43,18 @@ export class FoodProductsController {
   @ApiOkResponse({ type: FoodListResponseDto })
   search(@Query() query: SearchFoodsQueryDto): Promise<FoodListResponseDto> {
     return this.lookup.search(query);
+  }
+
+  @Get('suggestions')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({
+    summary: 'Sugerir alimentos locais e externos com cache e relevância',
+  })
+  @ApiOkResponse({ type: FoodSuggestionsResponseDto })
+  suggestions(
+    @Query() query: FoodSuggestionsQueryDto,
+  ): Promise<FoodSuggestionsResponseDto> {
+    return this.lookup.suggestions(query);
   }
 
   @Get('barcode/:barcode')

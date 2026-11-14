@@ -20,6 +20,7 @@ validações e respostas de erro completa.
 | Método e rota | Uso | Exemplo |
 | --- | --- | --- |
 | `GET /foods?q=arroz&page=1&limit=20&external=true` | Busca local com fallback configurado | sem corpo |
+| `GET /foods/suggestions?q=sorv&limit=8` | Sugestões locais + externas, com relevância, cache e estado do provedor | sem corpo |
 | `GET /foods/barcode/7891234567890` | Barcode e cache | sem corpo |
 | `GET /foods/{id}` | Detalhe canônico | sem corpo |
 | `POST /foods/manual` | Alimento manual autenticado | `{"name":"Arroz","caloriesPer100g":124,"proteinPer100g":2.6,"carbsPer100g":25.8,"fatPer100g":1,"fiberPer100g":2.7,"servingSizeG":100}` |
