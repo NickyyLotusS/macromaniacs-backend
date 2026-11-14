@@ -5,14 +5,33 @@ import { DailyNutritionSnapshot } from '../../integrations/database/entities/nut
 import { DietPlan } from '../../integrations/database/entities/nutrition/diet-plan.entity';
 import { UserProfile } from '../../integrations/database/entities/identity/user-profile.entity';
 import { DietPlanStatus } from '../../integrations/database/entities/enums';
+import {
+  BiologicalSex as DatabaseBiologicalSex,
+  UserGoal,
+} from '../../integrations/database/entities/enums';
 import { MealLog } from '../../integrations/database/entities/meals/meal-log.entity';
 import { foodDateAt } from '../../shared/time/timezone';
 import { paginationMeta } from '../../shared/http/pagination.dto';
 import type { ProgressHistoryQueryDto } from './dto/progress-query.dto';
 import {
+  ActivityLevel,
+  BiologicalSex,
+  NutritionGoal,
+} from '../users/domain/profile.enums';
+import { NutritionCalculatorService } from '../users/nutrition-calculator.service';
+import {
   DailyProgressResponseDto,
   type ProgressHistoryResponseDto,
 } from './dto/progress-response.dto';
+
+const PROFILE_GOALS: Readonly<Record<UserGoal, NutritionGoal>> = {
+  [UserGoal.WEIGHT_LOSS]: NutritionGoal.LOSE_WEIGHT,
+  [UserGoal.MUSCLE_GAIN]: NutritionGoal.GAIN_MUSCLE,
+  [UserGoal.STRENGTH_GAIN]: NutritionGoal.GAIN_STRENGTH,
+  [UserGoal.MAINTENANCE]: NutritionGoal.MAINTAIN,
+  [UserGoal.RECOMPOSITION]: NutritionGoal.RECOMPOSITION,
+  [UserGoal.PERFORMANCE]: NutritionGoal.PERFORMANCE,
+};
 
 @Injectable()
 export class ProgressService {
@@ -21,6 +40,7 @@ export class ProgressService {
     private readonly snapshots: Repository<DailyNutritionSnapshot>,
     @InjectRepository(UserProfile)
     private readonly profiles: Repository<UserProfile>,
+    private readonly nutritionCalculator: NutritionCalculatorService,
   ) {}
 
   async daily(
@@ -91,6 +111,9 @@ export class ProgressService {
       where: { userId, status: DietPlanStatus.ACTIVE },
       order: { updatedAt: 'DESC' },
     });
+    const profile = plan
+      ? null
+      : await manager.findOneByOrFail(UserProfile, { userId });
     const repository = manager.getRepository(DailyNutritionSnapshot);
     const values = {
       userId,
@@ -102,7 +125,8 @@ export class ProgressService {
       fat: this.decimal(sum('fat')),
       fiber: this.decimal(sum('fiber')),
       mealCount: meals.length,
-      targetCalories: plan?.targetCalories ?? null,
+      targetCalories:
+        plan?.targetCalories ?? this.profileCalorieTarget(profile),
     };
     await repository.upsert(values, {
       conflictPaths: ['userId', 'foodDate'],
@@ -119,6 +143,36 @@ export class ProgressService {
 
   private decimal(value: string | number | null | undefined): string {
     return Number(value ?? 0).toFixed(2);
+  }
+
+  private profileCalorieTarget(profile: UserProfile | null): number | null {
+    if (
+      !profile?.birthDate ||
+      !profile.heightCm ||
+      !profile.currentWeightKg ||
+      !profile.activityLevel ||
+      !profile.biologicalSex ||
+      profile.biologicalSex === DatabaseBiologicalSex.NOT_INFORMED ||
+      !profile.goal
+    ) {
+      return null;
+    }
+
+    const goal = PROFILE_GOALS[profile.goal];
+    return this.nutritionCalculator.calculate({
+      dateOfBirth: profile.birthDate,
+      biologicalSex:
+        profile.biologicalSex === DatabaseBiologicalSex.MALE
+          ? BiologicalSex.MALE
+          : BiologicalSex.FEMALE,
+      heightCm: Number(profile.heightCm),
+      currentWeightKg: Number(profile.currentWeightKg),
+      goal,
+      activityLevel: profile.activityLevel as unknown as ActivityLevel,
+      targetWeightKg:
+        profile.targetWeightKg === null ? null : Number(profile.targetWeightKg),
+      targetDate: profile.targetDate,
+    }).calorieTargetKcalPerDay;
   }
 
   private assertDate(value: string): void {

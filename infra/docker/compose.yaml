@@ -26,13 +26,13 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: macromaniacs_test
+      POSTGRES_DB: validation
     ports:
       - '127.0.0.1:${TEST_POSTGRES_PORT:-55433}:5432'
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d macromaniacs_test"]
+      test: ["CMD-SHELL", "pg_isready -U user -d validation"]
       interval: 2s
       timeout: 5s
       retries: 15
