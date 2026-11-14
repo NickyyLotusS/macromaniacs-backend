@@ -60,8 +60,8 @@ npm run start:dev
 - Cadastro: `POST /v1/auth/register`
 - Login: `POST /v1/auth/login`
 - Sessão atual: `GET /v1/auth/me`
-- Perfil nutricional atual: `GET /v1/users/me` (Bearer JWT)
-- Atualização/onboarding: `PATCH /v1/users/me` (Bearer JWT)
+- Perfil e avatar atuais: `GET /v1/users/me` (Bearer JWT)
+- Atualização/onboarding/avatar: `PATCH /v1/users/me` (Bearer JWT)
 - Cadastro manual de alimento: `POST /v1/foods/manual` (Bearer JWT)
 - Busca/detalhe/barcode: `GET /v1/foods`, `/v1/foods/{id}` e
   `/v1/foods/barcode/{barcode}`
@@ -115,6 +115,12 @@ não envia esses campos. Ao atualizar peso, altura, data de
 nascimento, sexo biológico, objetivo, atividade ou meta, a transação registra a
 medida corporal e recalcula as métricas retornadas. A persistência de snapshots
 diários usa `daily_nutrition_snapshots`, separado do estado de gamificação.
+
+O avatar DiceBear também faz parte do perfil persistente. A API aceita
+`avatar: { style, seed }` ou `avatar: null` no mesmo PATCH, guarda somente a
+configuração validada no `user_profiles.avatar_config` existente e a devolve
+mesmo antes do onboarding. Não há upload, proxy ou URL arbitrária. O contrato e
+os exemplos estão em [`docs/api/avatar-integration.md`](docs/api/avatar-integration.md).
 
 - TMB: fórmula de Mifflin-St Jeor, em kcal/dia.
 - TDEE: TMB multiplicada pelo fator de atividade (`1.2`, `1.375`, `1.55`,
