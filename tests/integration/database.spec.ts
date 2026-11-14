@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import '../../test/setup-env';
 import { jest } from '@jest/globals';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -599,6 +600,261 @@ describe('PostgreSQL: Prisma × TypeORM em bancos descartáveis', () => {
           ),
         ).toEqual([{ count: 1 }]);
         await empty.query('DELETE FROM users WHERE id=$1', [userId]);
+      } finally {
+        await app.close();
+      }
+    } finally {
+      if (previous === undefined) delete process.env.DATABASE_URL;
+      else process.env.DATABASE_URL = previous;
+    }
+  });
+
+  it('executa a jornada móvel completa por HTTP real sem mocks ou duplicidade', async () => {
+    const previous = process.env.DATABASE_URL;
+    process.env.DATABASE_URL = emptyUrl;
+    try {
+      const { AppModule } = await import('../../src/app.module.js');
+      const module = await Test.createTestingModule({
+        imports: [AppModule],
+      }).compile();
+      const app = module.createNestApplication();
+      configureApplication(app);
+      try {
+        await app.init();
+        const server = app.getHttpServer();
+        const registerAndLogin = async (username: string) => {
+          const registration = await request(server)
+            .post('/v1/auth/register')
+            .send({
+              email: `${username}@example.com`,
+              username,
+              password: 'strong-password-123',
+              termsAccepted: true,
+            })
+            .expect(201);
+          const login = await request(server)
+            .post('/v1/auth/login')
+            .send({ identifier: username, password: 'strong-password-123' })
+            .expect(200);
+          return {
+            userId: registration.body.id as string,
+            token: login.body.accessToken as string,
+          };
+        };
+
+        await request(server).get('/v1/auth/me').expect(401);
+        const alice = await registerAndLogin('mobile_alice');
+        const bob = await registerAndLogin('mobile_bob');
+        await request(server)
+          .post('/v1/auth/register')
+          .send({
+            email: 'mobile_alice@example.com',
+            username: 'mobile_alice_duplicate',
+            password: 'strong-password-123',
+            termsAccepted: true,
+          })
+          .expect(409);
+
+        const profile = await request(server)
+          .patch('/v1/users/me')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .send({
+            displayName: 'Alice Mobile',
+            dateOfBirth: '1994-03-10',
+            biologicalSex: 'FEMALE',
+            heightCm: 165,
+            currentWeightKg: 62,
+            goal: 'MAINTAIN',
+            activityLevel: 'MODERATE',
+            timezone: 'America/Sao_Paulo',
+          })
+          .expect(200);
+        expect(profile.body.nutrition.calorieTargetKcalPerDay).toBeGreaterThan(
+          0,
+        );
+
+        const food = await request(server)
+          .post('/v1/foods/manual')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .send({
+            name: 'Arroz jornada móvel',
+            caloriesPer100g: 200,
+            proteinPer100g: 10,
+            carbsPer100g: 32,
+            fatPer100g: 4,
+            fiberPer100g: 3,
+            servingSizeG: 100,
+          })
+          .expect(201);
+        const search = await request(server)
+          .get('/v1/foods?q=Arroz%20jornada&page=1&limit=20&external=false')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(200);
+        expect(search.body.items).toContainEqual(
+          expect.objectContaining({ id: food.body.id }),
+        );
+
+        const mealPayload = {
+          name: 'Almoço integrado',
+          consumedAt: new Date().toISOString(),
+          items: [{ foodId: food.body.id, amountGrams: 150 }],
+        };
+        await request(server)
+          .post('/v1/meals/manual')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .send(mealPayload)
+          .expect(400);
+        const firstMeal = await request(server)
+          .post('/v1/meals/manual')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .set('Idempotency-Key', 'mobile-lost-response')
+          .send(mealPayload)
+          .expect(201);
+        // O cliente pode perder a resposta; o replay usa a mesma chave.
+        const replayedMeal = await request(server)
+          .post('/v1/meals/manual')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .set('Idempotency-Key', 'mobile-lost-response')
+          .send(mealPayload)
+          .expect(201);
+        expect(replayedMeal.body.id).toBe(firstMeal.body.id);
+
+        const [{ mealCount }] = (await empty.query(
+          'SELECT count(*)::int AS "mealCount" FROM meal_logs WHERE user_id=$1 AND deleted_at IS NULL',
+          [alice.userId],
+        )) as Array<{ mealCount: number }>;
+        expect(mealCount).toBe(1);
+        await request(server)
+          .get(`/v1/meals/${firstMeal.body.id}`)
+          .set('Authorization', `Bearer ${bob.token}`)
+          .expect(404);
+
+        const progress = await request(server)
+          .get(`/v1/progress/daily?date=${firstMeal.body.foodDate}`)
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(200);
+        expect(progress.body).toMatchObject({
+          calories: 300,
+          mealCount: 1,
+          targetCalories: profile.body.nutrition.calorieTargetKcalPerDay,
+        });
+        const summary = await request(server)
+          .get('/v1/gamification/summary')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(200);
+        expect(summary.body).toMatchObject({
+          totalPoints: 15,
+          currentStreak: 1,
+        });
+        const achievements = await request(server)
+          .get('/v1/gamification/achievements')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(200);
+        expect(achievements.body).toContainEqual(
+          expect.objectContaining({ code: 'FIRST_MEAL' }),
+        );
+        await request(server)
+          .get(`/v1/gamification/missions?date=${firstMeal.body.foodDate}`)
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(200)
+          .expect(({ body }) => expect(body).toHaveLength(3));
+
+        const group = await request(server)
+          .post('/v1/groups')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .send({
+            name: 'Integração Mobile',
+            description: 'Feed usado como chat do grupo',
+            isPrivate: true,
+          })
+          .expect(201);
+        await request(server)
+          .post('/v1/groups/join')
+          .set('Authorization', `Bearer ${bob.token}`)
+          .send({ inviteCode: group.body.inviteCode })
+          .expect(201);
+        await request(server)
+          .patch(`/v1/groups/${group.body.id}/members/${alice.userId}`)
+          .set('Authorization', `Bearer ${bob.token}`)
+          .send({ role: 'MEMBER' })
+          .expect(403);
+        const post = await request(server)
+          .post(`/v1/groups/${group.body.id}/feed`)
+          .set('Authorization', `Bearer ${bob.token}`)
+          .send({ content: 'Mensagem real no feed do grupo' })
+          .expect(201);
+        await request(server)
+          .put(`/v1/groups/${group.body.id}/feed/${post.body.id}/reaction`)
+          .set('Authorization', `Bearer ${alice.token}`)
+          .send({ reactionType: 'FIRE' })
+          .expect(200);
+        const feed = await request(server)
+          .get(`/v1/groups/${group.body.id}/feed?page=1&limit=20`)
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(200);
+        expect(feed.body).toMatchObject({
+          items: [
+            expect.objectContaining({
+              id: post.body.id,
+              content: 'Mensagem real no feed do grupo',
+              reactions: expect.objectContaining({ FIRE: 1 }),
+            }),
+          ],
+          meta: expect.objectContaining({ page: 1 }),
+        });
+        await request(server)
+          .get(`/v1/groups/${group.body.id}/ranking`)
+          .set('Authorization', `Bearer ${bob.token}`)
+          .expect(200)
+          .expect(({ body }) => expect(body).toHaveLength(2));
+        await request(server)
+          .delete(`/v1/groups/${group.body.id}/members/me`)
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(409);
+        await request(server)
+          .delete(`/v1/groups/${group.body.id}/members/me`)
+          .set('Authorization', `Bearer ${bob.token}`)
+          .expect(204);
+
+        await empty.query(
+          `INSERT INTO point_transactions
+            (id,user_id,amount,reason,metadata,idempotency_key,source_type)
+           VALUES($1,$2,200,'ADMIN_ADJUSTMENT','{}','mobile-credit','integration-test')`,
+          [randomUUID(), alice.userId],
+        );
+        const catalog = await request(server)
+          .get('/v1/rewards/catalog')
+          .expect(200);
+        const itemId = catalog.body[0].id as string;
+        await request(server)
+          .post(`/v1/rewards/purchases/${itemId}`)
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(400);
+        const purchase = await request(server)
+          .post(`/v1/rewards/purchases/${itemId}`)
+          .set('Authorization', `Bearer ${alice.token}`)
+          .set('Idempotency-Key', 'mobile-purchase')
+          .expect(201);
+        const purchaseReplay = await request(server)
+          .post(`/v1/rewards/purchases/${itemId}`)
+          .set('Authorization', `Bearer ${alice.token}`)
+          .set('Idempotency-Key', 'mobile-purchase')
+          .expect(201);
+        expect(purchaseReplay.body).toEqual(purchase.body);
+        await request(server)
+          .put(`/v1/rewards/inventory/${itemId}/equip`)
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(200)
+          .expect(({ body }) => expect(body.isEquipped).toBe(true));
+        await request(server)
+          .get('/v1/rewards/inventory')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(200)
+          .expect(({ body }) =>
+            expect(body).toContainEqual(
+              expect.objectContaining({ id: itemId, isEquipped: true }),
+            ),
+          );
       } finally {
         await app.close();
       }

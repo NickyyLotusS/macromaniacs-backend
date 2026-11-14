@@ -69,6 +69,20 @@ describe('Consumed meals and nutrition progress (e2e)', () => {
 
   it('creates a manual meal atomically and deduplicates a retried request', async () => {
     const token = await register('mealowner');
+    const profile = await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        displayName: 'Meal Owner',
+        dateOfBirth: '1995-04-20',
+        biologicalSex: 'FEMALE',
+        heightCm: 165,
+        currentWeightKg: 62,
+        goal: 'MAINTAIN',
+        activityLevel: 'MODERATE',
+        timezone: 'America/Sao_Paulo',
+      })
+      .expect(200);
     const foodId = await createFood(token, 'Arroz');
     const payload = {
       name: 'Almoço',
@@ -105,7 +119,11 @@ describe('Consumed meals and nutrition progress (e2e)', () => {
       .get('/v1/progress/daily?date=2026-11-08')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
-    expect(progress.body).toMatchObject({ calories: 300, mealCount: 1 });
+    expect(progress.body).toMatchObject({
+      calories: 300,
+      mealCount: 1,
+      targetCalories: profile.body.nutrition.calorieTargetKcalPerDay,
+    });
   });
 
   it('rolls back the whole meal when one item is invalid', async () => {

@@ -21,7 +21,7 @@
     "test:cov": "npm test -- --coverage",
     "test:debug": "node --experimental-vm-modules --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "npm test -- --runInBand test/ tests/e2e/",
-    "test:integration": "RUN_DATABASE_TESTS=true npm test -- --runInBand tests/integration/database.spec.ts",
+    "test:integration": "node scripts/run-integration-tests.mjs",
     "perf:smoke": "ts-node scripts/performance-smoke.ts",
     "test:sql": "ts-node scripts/run-sql.ts",
     "docs": "npm run docs:dbml",
