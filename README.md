@@ -81,23 +81,27 @@ As convenções HTTP estão documentadas em
 O inventário completo de endpoints e exemplos está em
 [`docs/api/backend-completion.md`](docs/api/backend-completion.md).
 
-## Integração com React
+## Integração com Expo/React Native
 
-O backend permite por padrão a origem do Vite em `http://localhost:5173`.
-Para outro endereço, configure uma ou mais origens separadas por vírgula:
+O aplicativo oficial usa uma URL base sem `/v1` e JWT Bearer. Para clientes
+web ou ferramentas de desenvolvimento, configure as origens CORS separadas por
+vírgula:
 
 ```env
 CORS_ORIGINS=http://localhost:5173,https://app.example.com
 ```
 
-No frontend, configure:
+No frontend Expo, configure:
 
 ```env
-VITE_API_URL=http://localhost:3000
+EXPO_PUBLIC_USE_MOCK=false
+EXPO_PUBLIC_USE_AUTH_MOCK=false
+EXPO_PUBLIC_API_URL=http://10.0.2.2:3000
 ```
 
-Exemplos de payload, tipos e chamadas `fetch` estão em
-[`docs/api/react-integration.md`](docs/api/react-integration.md).
+O contrato completo, incluindo idempotência, paginação, fila offline, grupos e
+recompensas está em
+[`docs/api/mobile-integration.md`](docs/api/mobile-integration.md).
 
 A avaliação reproduzível de consultas e o smoke de staging estão em
 [`docs/performance.md`](docs/performance.md).
@@ -146,7 +150,7 @@ PostgreSQL 15 real. Localmente, essa suíte exige um servidor descartável cujo
 banco administrativo se chame `validation`:
 
 ```bash
-TEST_ADMIN_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55433/validation npm run test:integration
+TEST_ADMIN_DATABASE_URL=postgresql://user:password@127.0.0.1:55433/validation npm run test:integration
 ```
 
 Para validar manualmente contra PostgreSQL real, existe também um serviço
@@ -157,6 +161,7 @@ docker compose -f infra/docker/compose.yaml --profile test up -d postgres-test
 ```
 
 Ele usa `tmpfs` e não compartilha o volume do banco de desenvolvimento.
+No PowerShell, defina `TEST_ADMIN_DATABASE_URL` com `$env:` antes do comando.
 
 ## Deploy
 
