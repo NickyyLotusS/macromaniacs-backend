@@ -94,6 +94,16 @@ describe('NutritionNormalizer', () => {
     expect(() => normalizer.normalize(source, input)).toThrow(field);
   });
 
+  it('rejeita valores por 100 g fisicamente impossíveis', () => {
+    const input = food({
+      basisGrams: '100',
+      nutrients: { ...food().nutrients, caloriesKcal: '2000' },
+    });
+    expect(() => normalizer.normalize(source, input)).toThrow(
+      'must not exceed 900 per 100g',
+    );
+  });
+
   it('define um contrato único para providers intercambiáveis', async () => {
     const provider: FoodProvider = {
       source: FoodSource.TBCA,

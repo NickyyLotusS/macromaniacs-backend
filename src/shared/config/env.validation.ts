@@ -135,6 +135,13 @@ export function validate(
     0,
     3,
   );
+  const foodProviderRetryBaseDelayMs = integerBetween(
+    config.FOOD_PROVIDER_RETRY_BASE_DELAY_MS,
+    200,
+    'FOOD_PROVIDER_RETRY_BASE_DELAY_MS',
+    50,
+    2000,
+  );
   const foodProviderCircuitFailures = integerBetween(
     config.FOOD_PROVIDER_CIRCUIT_FAILURES,
     3,
@@ -148,6 +155,34 @@ export function validate(
     'FOOD_PROVIDER_CIRCUIT_RESET_MS',
     1000,
     600_000,
+  );
+  const foodSearchCacheTtlMs = integerBetween(
+    config.FOOD_SEARCH_CACHE_TTL_MS,
+    15 * 60_000,
+    'FOOD_SEARCH_CACHE_TTL_MS',
+    1000,
+    86_400_000,
+  );
+  const openFoodFactsSearchRateLimitMax = integerBetween(
+    config.OPEN_FOOD_FACTS_SEARCH_RATE_LIMIT_MAX,
+    8,
+    'OPEN_FOOD_FACTS_SEARCH_RATE_LIMIT_MAX',
+    1,
+    10,
+  );
+  const openFoodFactsProductRateLimitMax = integerBetween(
+    config.OPEN_FOOD_FACTS_PRODUCT_RATE_LIMIT_MAX,
+    12,
+    'OPEN_FOOD_FACTS_PRODUCT_RATE_LIMIT_MAX',
+    1,
+    15,
+  );
+  const usdaRateLimitMax = integerBetween(
+    config.USDA_RATE_LIMIT_MAX,
+    900,
+    'USDA_RATE_LIMIT_MAX',
+    1,
+    1000,
   );
   const rateLimitWindowMs = integerBetween(
     config.RATE_LIMIT_WINDOW_MS,
@@ -184,8 +219,13 @@ export function validate(
     DEFAULT_TIMEZONE: defaultTimezone,
     FOOD_PROVIDER_TIMEOUT_MS: foodProviderTimeoutMs,
     FOOD_PROVIDER_RETRIES: foodProviderRetries,
+    FOOD_PROVIDER_RETRY_BASE_DELAY_MS: foodProviderRetryBaseDelayMs,
     FOOD_PROVIDER_CIRCUIT_FAILURES: foodProviderCircuitFailures,
     FOOD_PROVIDER_CIRCUIT_RESET_MS: foodProviderCircuitResetMs,
+    FOOD_SEARCH_CACHE_TTL_MS: foodSearchCacheTtlMs,
+    OPEN_FOOD_FACTS_SEARCH_RATE_LIMIT_MAX: openFoodFactsSearchRateLimitMax,
+    OPEN_FOOD_FACTS_PRODUCT_RATE_LIMIT_MAX: openFoodFactsProductRateLimitMax,
+    USDA_RATE_LIMIT_MAX: usdaRateLimitMax,
     RATE_LIMIT_WINDOW_MS: rateLimitWindowMs,
     RATE_LIMIT_MAX: rateLimitMax,
     LOGIN_RATE_LIMIT_MAX: loginRateLimitMax,

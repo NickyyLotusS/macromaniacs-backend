@@ -13,9 +13,25 @@ import {
   type FoodCatalogRepository,
 } from './domain/food-catalog';
 import { FoodCacheService } from './food-cache.service';
+import { FoodSearchCacheService } from './food-search-cache.service';
 import { FOOD_PROVIDERS, type FoodProviders } from './food-provider.tokens';
 import type { SearchFoodsQueryDto } from './dto/search-foods-query.dto';
-import { FoodListResponseDto, FoodResponseDto } from './dto/food-response.dto';
+import type { FoodSuggestionsQueryDto } from './dto/food-suggestions-query.dto';
+import {
+  FoodExternalSearchStatus,
+  FoodListResponseDto,
+  FoodResponseDto,
+  FoodSuggestionsResponseDto,
+} from './dto/food-response.dto';
+import type { FoodRecord } from './domain/food-catalog';
+import { rankAndDeduplicateFoods } from './domain/food-search';
+import { FoodNormalizationError } from './domain/nutrition-normalizer';
+
+type ExternalSearchResult = {
+  records: FoodRecord[];
+  successfulProviders: number;
+  fullProviderPage: boolean;
+};
 
 @Injectable()
 export class FoodLookupService {
@@ -25,38 +41,69 @@ export class FoodLookupService {
     @Inject(FOOD_PROVIDERS)
     private readonly providers: FoodProviders,
     private readonly cache: FoodCacheService,
+    private readonly searchCache: FoodSearchCacheService,
     private readonly config: ConfigService,
   ) {}
 
   async search(query: SearchFoodsQueryDto): Promise<FoodListResponseDto> {
-    let local = await this.repository.search(query.q, query.page, query.limit);
-    if (query.external && local.items.length < query.limit) {
-      let successfulProvider = false;
-      for (const provider of this.enabledProviders()) {
-        try {
-          const foods = await provider.search({
-            query: query.q,
-            page: query.page,
-            limit: query.limit,
-          });
-          successfulProvider = true;
-          for (const food of foods) {
-            await this.cache.cacheProviderFood(provider, food);
-          }
-        } catch (error) {
-          if (!(error instanceof FoodProviderUnavailableError)) throw error;
-        }
-      }
-      local = await this.repository.search(query.q, query.page, query.limit);
-      if (!successfulProvider && local.items.length === 0) {
-        throw new ServiceUnavailableException(
-          'Food providers are temporarily unavailable',
-        );
-      }
+    const localPromise = this.repository.search(
+      query.q,
+      query.page,
+      query.limit,
+    );
+    if (!query.external) {
+      const local = await localPromise;
+      return {
+        items: local.items.map(FoodResponseDto.from),
+        meta: paginationMeta(local.total, query),
+      };
     }
+
+    const [local, external] = await Promise.all([
+      localPromise,
+      this.searchExternal(query.q, query.page, query.limit),
+    ]);
+    if (!external.successfulProviders && local.items.length === 0) {
+      throw new ServiceUnavailableException(
+        'Food providers are temporarily unavailable',
+      );
+    }
+
+    const items = rankAndDeduplicateFoods(
+      [...local.items, ...external.records],
+      query.q,
+      query.limit,
+    );
+    const pageFloor = (query.page - 1) * query.limit + items.length;
+    const total = Math.max(
+      local.total,
+      pageFloor + (external.fullProviderPage ? 1 : 0),
+    );
     return {
-      items: local.items.map(FoodResponseDto.from),
-      meta: paginationMeta(local.total, query),
+      items: items.map(FoodResponseDto.from),
+      meta: paginationMeta(total, query),
+    };
+  }
+
+  async suggestions(
+    query: FoodSuggestionsQueryDto,
+  ): Promise<FoodSuggestionsResponseDto> {
+    const candidateLimit = Math.max(query.limit * 2, 16);
+    const [local, external] = await Promise.all([
+      this.repository.search(query.q, 1, candidateLimit),
+      this.searchExternal(query.q, 1, candidateLimit),
+    ]);
+    const items = rankAndDeduplicateFoods(
+      [...local.items, ...external.records],
+      query.q,
+      query.limit,
+    );
+
+    return {
+      items: items.map(FoodResponseDto.from),
+      externalStatus: external.successfulProviders
+        ? FoodExternalSearchStatus.AVAILABLE
+        : FoodExternalSearchStatus.UNAVAILABLE,
     };
   }
 
@@ -87,6 +134,52 @@ export class FoodLookupService {
     const food = await this.repository.findById(id);
     if (!food) throw new NotFoundException('Food not found');
     return FoodResponseDto.from(food);
+  }
+
+  private async searchExternal(
+    query: string,
+    page: number,
+    limit: number,
+  ): Promise<ExternalSearchResult> {
+    const results = await Promise.all(
+      this.enabledProviders().map(async (provider) => {
+        try {
+          const { foods } = await this.searchCache.search(
+            provider,
+            query,
+            page,
+            limit,
+          );
+          const records = (
+            await Promise.all(
+              foods.map(async (food) => {
+                try {
+                  return await this.cache.cacheProviderFood(provider, food);
+                } catch (error) {
+                  if (error instanceof FoodNormalizationError) return null;
+                  throw error;
+                }
+              }),
+            )
+          ).filter((record): record is FoodRecord => record !== null);
+          return {
+            records,
+            successful: true,
+            fullPage: foods.length >= limit,
+          };
+        } catch (error) {
+          if (!(error instanceof FoodProviderUnavailableError)) throw error;
+          return { records: [], successful: false, fullPage: false };
+        }
+      }),
+    );
+
+    return {
+      records: results.flatMap(({ records }) => records),
+      successfulProviders: results.filter(({ successful }) => successful)
+        .length,
+      fullProviderPage: results.some(({ fullPage }) => fullPage),
+    };
   }
 
   private enabledProviders(): FoodProviders {

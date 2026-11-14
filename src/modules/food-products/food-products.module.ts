@@ -12,6 +12,7 @@ import type { FoodProvider } from './domain/food-provider';
 import { NutritionNormalizer } from './domain/nutrition-normalizer';
 import { FoodCacheService } from './food-cache.service';
 import { FoodLookupService } from './food-lookup.service';
+import { FoodSearchCacheService } from './food-search-cache.service';
 import { FoodProductsController } from './food-products.controller';
 import { FOOD_PROVIDERS } from './food-provider.tokens';
 
@@ -22,6 +23,7 @@ import { FOOD_PROVIDERS } from './food-provider.tokens';
     NutritionNormalizer,
     FoodCacheService,
     FoodLookupService,
+    FoodSearchCacheService,
     ResilientFetchService,
     OpenFoodFactsProvider,
     UsdaFoodDataProvider,

@@ -44,13 +44,30 @@ conflito controlado.
 
 ## Adapters e fallback
 
-Open Food Facts usa leitura v3 por barcode e busca textual documentada, com
-User-Agent próprio. USDA usa FoodData Central quando `USDA_API_KEY` está
+Open Food Facts usa leitura v3 por barcode e o Search-a-licious oficial para
+busca textual relevante em português/inglês, com User-Agent próprio. O endpoint
+legado `/cgi/search.pl` não é usado: além de devolver resultados pouco
+relevantes para consultas em português, a documentação o desaconselha para
+integrações novas. USDA usa FoodData Central quando `USDA_API_KEY` está
 configurada. TBCA permanece explicitamente desativada porque não foi encontrado
 contrato público estável/licenciado; o backend não faz scraping.
 
-Timeout, retry limitado e circuit breaker são configuráveis. A busca tenta os
-provedores habilitados, normaliza e grava resultados; barcode retorna `404`
-quando ao menos um provedor respondeu sem resultado e `503` quando todos os
-provedores habilitados estão indisponíveis. Testes usam fixtures, nunca chamadas
-externas instáveis.
+`GET /v1/foods/suggestions` consulta catálogo e provedores em paralelo, combina
+os resultados sem uma segunda busca paginada no banco, ordena correspondência
+exata/prefixo/palavra/trecho e elimina duplicações por barcode ou identidade
+nutricional. O cache em memória é compartilhado pelo processo, tem TTL de 15
+minutos e agrega requisições simultâneas equivalentes. O resultado externo
+válido também é persistido no catálogo PostgreSQL para fallback futuro.
+
+Timeout, retry exponencial limitado, circuit breaker, HTTP 429 e limitador local
+por provedor são configuráveis. O padrão fica abaixo das cotas oficiais: 8
+buscas/minuto e 12 leituras de produto/minuto no Open Food Facts; USDA só é
+ativado com chave e usa no máximo 900 requisições/hora. A documentação oficial
+informa 10 buscas/minuto e 15 leituras/minuto para Product Opener, e 1.000/hora
+para uma chave normal do USDA. Testes usam fixtures, nunca chamadas externas
+instáveis.
+
+Itens sem energia, proteína, carboidrato ou gordura são descartados. Energia
+acima de 900 kcal/100 g ou macronutriente acima de 100 g/100 g também é
+rejeitado; nenhum valor obrigatório é inventado. Fibra ausente continua zero,
+como previsto pelo contrato canônico.

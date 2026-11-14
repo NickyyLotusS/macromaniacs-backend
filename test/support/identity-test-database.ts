@@ -14,6 +14,24 @@ export async function createIdentityTestDataSource(): Promise<DataSource> {
     returns: DataType.text,
     implementation: () => 'PostgreSQL 15',
   });
+  memoryDatabase.public.registerFunction({
+    name: 'translate',
+    args: [DataType.text, DataType.text, DataType.text],
+    returns: DataType.text,
+    implementation: (value: string, source: string, target: string) => {
+      const replacements = new Map(
+        Array.from(source, (character, index) => [
+          character,
+          target[index] ?? '',
+        ]),
+      );
+      return Array.from(value, (character) =>
+        replacements.has(character)
+          ? (replacements.get(character) ?? '')
+          : character,
+      ).join('');
+    },
+  });
 
   const dataSource = await memoryDatabase.adapters.createTypeormDataSource({
     type: 'postgres',

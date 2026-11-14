@@ -20,7 +20,7 @@ Contrato validado em 13/11/2026 contra o frontend
 |---|---|
 | Auth | `POST /auth/register`, `POST /auth/login`, `GET /auth/me` |
 | Perfil | `GET/PATCH /users/me` (inclui `avatar`) |
-| Alimentos | `GET /foods`, `/foods/:id`, `/foods/barcode/:barcode`; `POST /foods/manual` |
+| Alimentos | `GET /foods`, `/foods/suggestions`, `/foods/:id`, `/foods/barcode/:barcode`; `POST /foods/manual` |
 | Refeições | `POST /meals/manual`; `GET /meals`, `/meals/:id`; `PATCH/DELETE /meals/:id` |
 | Progresso | `GET /progress/daily`, `/progress/history` |
 | Gamificação | `GET /gamification/summary`, `/achievements`, `/missions` |

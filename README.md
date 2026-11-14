@@ -63,7 +63,8 @@ npm run start:dev
 - Perfil e avatar atuais: `GET /v1/users/me` (Bearer JWT)
 - Atualização/onboarding/avatar: `PATCH /v1/users/me` (Bearer JWT)
 - Cadastro manual de alimento: `POST /v1/foods/manual` (Bearer JWT)
-- Busca/detalhe/barcode: `GET /v1/foods`, `/v1/foods/{id}` e
+- Busca/sugestões/detalhe/barcode: `GET /v1/foods`,
+  `/v1/foods/suggestions`, `/v1/foods/{id}` e
   `/v1/foods/barcode/{barcode}`
 - Planos alimentares: `POST/GET /v1/diet-plans` (Bearer JWT)
 - Detalhe/edição/ativação: `/v1/diet-plans/{id}` (Bearer JWT)

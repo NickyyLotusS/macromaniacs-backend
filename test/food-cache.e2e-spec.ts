@@ -9,6 +9,7 @@ import type { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 import { configureApplication, createSwaggerDocument } from '../src/app.setup';
 import { FoodSource } from '../src/integrations/database/entities/enums';
+import { FoodProviderUnavailableError } from '../src/integrations/food-providers/provider-errors';
 import type {
   FoodProvider,
   ProviderFood,
@@ -80,6 +81,7 @@ describe('Food cache and manual catalog (e2e)', () => {
     expect(document.paths['/v1/foods/manual']?.post?.security).toContainEqual({
       'access-token': [],
     });
+    expect(document.paths['/v1/foods/suggestions']?.get).toBeDefined();
   });
 
   it('cadastra alimento manual validado e preserva auditoria', async () => {
@@ -210,6 +212,82 @@ describe('Food cache and manual catalog (e2e)', () => {
       .expect(200)
       .expect(({ body }) => expect(body.id).toBe(created.body.id));
     expect(lookupProvider.findByBarcode).not.toHaveBeenCalled();
+  });
+
+  it('busca o catálogo local sem diferenciar acentos', async () => {
+    await request(app.getHttpServer())
+      .post('/v1/foods/manual')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        ...manualFood,
+        name: 'Feijão carioca cozido',
+        barcode: '7891234567891',
+      })
+      .expect(201);
+
+    const result = await request(app.getHttpServer())
+      .get('/v1/foods')
+      .query({ q: 'feijao', external: false })
+      .expect(200);
+
+    expect(result.body.items).toMatchObject([
+      { name: 'Feijão carioca cozido', source: FoodSource.MANUAL },
+    ]);
+  });
+
+  it('sugere alimento que existe somente no provedor externo', async () => {
+    lookupProvider.search.mockResolvedValue([
+      {
+        externalId: 'off-sorvete-1',
+        name: 'Sorvete de chocolate',
+        barcode: '7890000000002',
+        basisGrams: '100',
+        nutrients: {
+          caloriesKcal: '210',
+          proteinGrams: '3.5',
+          carbohydrateGrams: '28',
+          fatGrams: '10',
+        },
+        retrievedAt: new Date('2026-11-14T12:00:00.000Z'),
+      },
+    ]);
+
+    const result = await request(app.getHttpServer())
+      .get('/v1/foods/suggestions')
+      .query({ q: 'sorv', limit: 8 })
+      .expect(200);
+
+    expect(result.body).toMatchObject({
+      externalStatus: 'AVAILABLE',
+      items: [
+        {
+          name: 'Sorvete de chocolate',
+          source: FoodSource.OPEN_FOOD_FACTS,
+          caloriesPer100g: 210,
+        },
+      ],
+    });
+    expect(lookupProvider.search).toHaveBeenCalledWith({
+      query: 'sorv',
+      page: 1,
+      limit: 16,
+    });
+  });
+
+  it('distingue indisponibilidade externa de ausência de resultados', async () => {
+    lookupProvider.search.mockRejectedValue(
+      new FoodProviderUnavailableError('open-food-facts', 'HTTP 429'),
+    );
+
+    const result = await request(app.getHttpServer())
+      .get('/v1/foods/suggestions')
+      .query({ q: 'gelad', limit: 8 })
+      .expect(200);
+
+    expect(result.body).toEqual({
+      externalStatus: 'UNAVAILABLE',
+      items: [],
+    });
   });
 
   it('usa provedor simulado e persiste resultado normalizado para fallback local', async () => {

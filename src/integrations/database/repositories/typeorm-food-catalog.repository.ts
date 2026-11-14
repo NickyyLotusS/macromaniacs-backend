@@ -13,6 +13,7 @@ import type {
   FoodProviderSource,
   NormalizedFood,
 } from '../../../modules/food-products/domain/food-provider';
+import { normalizeFoodSearchQuery } from '../../../modules/food-products/domain/food-search';
 
 type PostgresDriverError = { code?: string; constraint?: string };
 
@@ -38,12 +39,29 @@ export class TypeOrmFoodCatalogRepository implements FoodCatalogRepository {
     page: number,
     limit: number,
   ): Promise<{ items: FoodRecord[]; total: number }> {
+    const normalizedQuery = normalizeFoodSearchQuery(query);
+    const normalizedName =
+      "translate(lower(food.name), 'áàâãäéèêëíìîïóòôõöúùûüç', 'aaaaaeeeeiiiiooooouuuuc')";
     const builder = this.foods
       .createQueryBuilder('food')
-      .where('LOWER(food.name) LIKE :query', {
-        query: `%${query.trim().toLowerCase()}%`,
+      .where(`${normalizedName} LIKE :contains`, {
+        contains: `%${normalizedQuery}%`,
       })
-      .orderBy('food.name', 'ASC')
+      .orderBy(
+        `CASE
+          WHEN ${normalizedName} = :exact THEN 0
+          WHEN ${normalizedName} LIKE :prefix THEN 1
+          WHEN ${normalizedName} LIKE :wordPrefix THEN 2
+          ELSE 3
+        END`,
+        'ASC',
+      )
+      .setParameters({
+        exact: normalizedQuery,
+        prefix: `${normalizedQuery}%`,
+        wordPrefix: `% ${normalizedQuery}%`,
+      })
+      .addOrderBy('food.name', 'ASC')
       .addOrderBy('food.id', 'ASC')
       .skip((page - 1) * limit)
       .take(limit);
