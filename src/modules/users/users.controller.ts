@@ -23,7 +23,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
-  @ApiOperation({ summary: 'Consultar o próprio perfil nutricional' })
+  @ApiOperation({ summary: 'Consultar o próprio perfil e avatar persistente' })
   @ApiOkResponse({ type: MyProfileResponseDto })
   @ApiUnauthorizedResponse({
     description: 'Token ausente, inválido ou expirado',
@@ -36,7 +36,9 @@ export class UsersController {
 
   @Patch('me')
   @ApiOperation({
-    summary: 'Atualizar o próprio perfil e recalcular métricas nutricionais',
+    summary: 'Atualizar o próprio perfil, inclusive o avatar DiceBear',
+    description:
+      'Um PATCH somente de avatar não conclui o onboarding nem altera medidas ou dados nutricionais.',
   })
   @ApiOkResponse({ type: MyProfileResponseDto })
   @ApiBadRequestResponse({ description: 'Dados corporais ou perfil inválidos' })

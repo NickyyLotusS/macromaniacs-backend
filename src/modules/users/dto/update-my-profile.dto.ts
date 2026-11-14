@@ -1,8 +1,9 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsEnum,
   IsISO8601,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   Length,
@@ -11,6 +12,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
@@ -18,11 +20,24 @@ import {
   BiologicalSex,
   NutritionGoal,
 } from '../domain/profile.enums';
+import { AvatarConfigDto } from './avatar.dto';
 
 const trimOrNull = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? value.trim() || null : value;
 
 export class UpdateMyProfileDto {
+  @ApiPropertyOptional({
+    type: AvatarConfigDto,
+    nullable: true,
+    description:
+      'Configuração DiceBear persistida. Envie null para remover o avatar.',
+  })
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => AvatarConfigDto)
+  avatar?: AvatarConfigDto | null;
+
   @ApiPropertyOptional({ example: 'Nicolly', maxLength: 100 })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsOptional()

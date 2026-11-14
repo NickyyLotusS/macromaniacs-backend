@@ -94,10 +94,148 @@ describe('Users profile and onboarding (e2e)', () => {
 
     expect(response.body).toMatchObject({
       username: 'incomplete',
+      avatar: null,
       onboardingCompleted: false,
       currentMeasurement: null,
       measurements: [],
       nutrition: null,
+    });
+  });
+
+  it('persists, updates and removes an avatar before onboarding', async () => {
+    const token = await registerAndLogin('avatarowner');
+    const firstAvatar = { style: 'adventurer', seed: 'abc123xyz789' };
+
+    const saved = await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ avatar: firstAvatar })
+      .expect(200);
+
+    expect(saved.body).toMatchObject({
+      avatar: firstAvatar,
+      onboardingCompleted: false,
+      currentMeasurement: null,
+      measurements: [],
+      nutrition: null,
+    });
+
+    const newSession = await request(app.getHttpServer())
+      .post('/v1/auth/login')
+      .send({
+        identifier: 'avatarowner',
+        password: 'strong-password-123',
+      })
+      .expect(200);
+    await request(app.getHttpServer())
+      .get('/v1/users/me')
+      .set('Authorization', `Bearer ${newSession.body.accessToken as string}`)
+      .expect(200)
+      .expect(({ body }) => expect(body.avatar).toEqual(firstAvatar));
+
+    const secondAvatar = { style: 'fun-emoji', seed: '987xyzABC654' };
+    await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ avatar: secondAvatar })
+      .expect(200)
+      .expect(({ body }) => expect(body.avatar).toEqual(secondAvatar));
+
+    const removed = await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ avatar: null })
+      .expect(200);
+    expect(removed.body.avatar).toBeNull();
+
+    const [{ avatarConfig }] = (await database.query(
+      'SELECT avatar_config AS "avatarConfig" FROM user_profiles WHERE user_id=$1',
+      [removed.body.id],
+    )) as Array<{ avatarConfig: Record<string, unknown> }>;
+    expect(avatarConfig).toEqual({});
+  });
+
+  it('isolates avatars by authenticated user', async () => {
+    const firstToken = await registerAndLogin('avatarfirst');
+    const secondToken = await registerAndLogin('avatarsecond');
+    const avatar = { style: 'big-smile', seed: 'first123seed' };
+
+    await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .set('Authorization', `Bearer ${firstToken}`)
+      .send({ avatar })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .get('/v1/users/me')
+      .set('Authorization', `Bearer ${secondToken}`)
+      .expect(200)
+      .expect(({ body }) => expect(body.avatar).toBeNull());
+  });
+
+  it.each([
+    ['unsupported style', { style: 'bottts', seed: 'abc123xyz789' }],
+    ['short seed', { style: 'avataaars', seed: 'short' }],
+    ['non-alphanumeric seed', { style: 'adventurer', seed: '<svg123456>' }],
+    [
+      'unexpected nested field',
+      {
+        style: 'fun-emoji',
+        seed: 'abc123xyz789',
+        url: 'https://evil.example/avatar.svg',
+      },
+    ],
+    ['non-object value', 'https://evil.example/avatar.svg'],
+    ['array value', [{ style: 'avataaars', seed: 'abc123xyz789' }]],
+  ])('rejects avatar with %s', async (_name, avatar) => {
+    const token = await registerAndLogin(
+      `badavatar${Math.random()}`.replace('.', ''),
+    );
+
+    await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ avatar })
+      .expect(400);
+  });
+
+  it('rejects an avatar update without a token', async () => {
+    await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .send({ avatar: { style: 'avataaars', seed: 'abc123xyz789' } })
+      .expect(401);
+  });
+
+  it('does not change nutrition or measurement history on avatar-only patch', async () => {
+    const token = await registerAndLogin('avatarnutrition');
+    const before = await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send(validOnboarding())
+      .expect(200);
+
+    const after = await request(app.getHttpServer())
+      .patch('/v1/users/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ avatar: { style: 'adventurer', seed: 'safe123avatar' } })
+      .expect(200);
+
+    expect(after.body.avatar).toEqual({
+      style: 'adventurer',
+      seed: 'safe123avatar',
+    });
+    expect(after.body.onboardingCompletedAt).toBe(
+      before.body.onboardingCompletedAt,
+    );
+    expect(after.body.currentMeasurement).toEqual(
+      before.body.currentMeasurement,
+    );
+    expect(after.body.measurements).toEqual(before.body.measurements);
+    expect(after.body.nutrition).toMatchObject({
+      ageYears: before.body.nutrition.ageYears,
+      bmrKcalPerDay: before.body.nutrition.bmrKcalPerDay,
+      tdeeKcalPerDay: before.body.nutrition.tdeeKcalPerDay,
+      calorieTargetKcalPerDay: before.body.nutrition.calorieTargetKcalPerDay,
     });
   });
 
@@ -238,6 +376,9 @@ describe('Users profile and onboarding (e2e)', () => {
     const document = createSwaggerDocument(app);
     expect(document.paths['/v1/users/me']?.get).toBeDefined();
     expect(document.paths['/v1/users/me']?.patch).toBeDefined();
-    expect(JSON.stringify(document)).not.toContain('passwordHash');
+    const serializedDocument = JSON.stringify(document);
+    expect(serializedDocument).toContain('AvatarConfigDto');
+    expect(serializedDocument).toContain('avataaars');
+    expect(serializedDocument).not.toContain('passwordHash');
   });
 });

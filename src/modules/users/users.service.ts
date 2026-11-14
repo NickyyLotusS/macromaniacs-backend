@@ -32,6 +32,7 @@ import type {
 } from './dto/user-profile-response.dto';
 import { NutritionCalculatorService } from './nutrition-calculator.service';
 import { assertIanaTimezone } from '../../shared/time/timezone';
+import { normalizeAvatarConfig } from './dto/avatar.dto';
 
 type PostgresDriverError = { code?: string };
 
@@ -113,7 +114,7 @@ export class UsersService {
         if (!profile && this.hasProfileFields(dto)) {
           profile = await this.createEmptyProfile(manager, userId);
         }
-        if (profile) {
+        if (profile && this.hasProfileFields(dto)) {
           await this.updateProfile(manager, profile, dto);
         }
       });
@@ -192,29 +193,40 @@ export class UsersService {
         throw new BadRequestException('timezone must be a valid IANA timezone');
       }
     }
-
-    this.validateGoalDetails(profile.targetWeightKg, profile.targetDate);
-    const missing = this.missingOnboardingFields(profile);
-    if (!wasComplete && missing.length > 0 && this.hasOnboardingFields(dto)) {
-      throw new BadRequestException(
-        `Complete o primeiro perfil com: ${missing.join(', ')}`,
-      );
+    if (dto.avatar !== undefined) {
+      profile.avatarConfig = dto.avatar
+        ? { style: dto.avatar.style, seed: dto.avatar.seed }
+        : {};
     }
 
-    if (missing.length === 0) {
-      this.calculateNutrition(profile);
-      if (!wasComplete) {
-        profile.onboardingCompletedAt = new Date();
-        await this.addMeasurement(
-          manager,
-          profile.userId,
-          Number(profile.currentWeightKg),
+    if (this.hasOnboardingFields(dto)) {
+      this.validateGoalDetails(profile.targetWeightKg, profile.targetDate);
+      const missing = this.missingOnboardingFields(profile);
+      if (!wasComplete && missing.length > 0) {
+        throw new BadRequestException(
+          `Complete o primeiro perfil com: ${missing.join(', ')}`,
         );
-      } else if (
-        dto.currentWeightKg !== undefined &&
-        Number(previousWeight) !== dto.currentWeightKg
-      ) {
-        await this.addMeasurement(manager, profile.userId, dto.currentWeightKg);
+      }
+
+      if (missing.length === 0) {
+        this.calculateNutrition(profile);
+        if (!wasComplete) {
+          profile.onboardingCompletedAt = new Date();
+          await this.addMeasurement(
+            manager,
+            profile.userId,
+            Number(profile.currentWeightKg),
+          );
+        } else if (
+          dto.currentWeightKg !== undefined &&
+          Number(previousWeight) !== dto.currentWeightKg
+        ) {
+          await this.addMeasurement(
+            manager,
+            profile.userId,
+            dto.currentWeightKg,
+          );
+        }
       }
     }
     await manager.save(UserProfile, profile);
@@ -247,6 +259,7 @@ export class UsersService {
       dto.targetDate,
       dto.dietaryRestrictions,
       dto.timezone,
+      dto.avatar,
     ].some((value) => value !== undefined);
   }
 
@@ -299,6 +312,7 @@ export class UsersService {
         email: user.email,
         username: user.username,
         displayName: user.displayName,
+        avatar: normalizeAvatarConfig(profile?.avatarConfig),
         dateOfBirth: null,
         biologicalSex: null,
         goal: null,
@@ -324,6 +338,7 @@ export class UsersService {
       email: user.email,
       username: user.username,
       displayName: user.displayName,
+      avatar: normalizeAvatarConfig(profile.avatarConfig),
       dateOfBirth: profile.birthDate,
       biologicalSex: this.toApiSex(profile.biologicalSex),
       goal: profile.goal ? (databaseGoalToApi.get(profile.goal) ?? null) : null,

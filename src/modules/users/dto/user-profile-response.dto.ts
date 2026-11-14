@@ -4,6 +4,7 @@ import {
   BiologicalSex,
   NutritionGoal,
 } from '../domain/profile.enums';
+import { AvatarConfigDto } from './avatar.dto';
 
 export class BodyMeasurementResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -48,6 +49,13 @@ export class MyProfileResponseDto {
 
   @ApiPropertyOptional({ example: 'Nicolly', nullable: true })
   displayName!: string | null;
+
+  @ApiProperty({
+    type: AvatarConfigDto,
+    nullable: true,
+    description: 'Configuração visual DiceBear; null quando não escolhida',
+  })
+  avatar!: AvatarConfigDto | null;
 
   @ApiPropertyOptional({ format: 'date', nullable: true })
   dateOfBirth!: string | null;

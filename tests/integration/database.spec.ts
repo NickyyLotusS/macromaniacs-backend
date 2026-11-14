@@ -673,6 +673,44 @@ describe('PostgreSQL: Prisma × TypeORM em bancos descartáveis', () => {
           0,
         );
 
+        const avatar = { style: 'adventurer', seed: 'mobile123avatar' };
+        await request(server)
+          .patch('/v1/users/me')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .send({ avatar })
+          .expect(200)
+          .expect(({ body }) => {
+            expect(body.avatar).toEqual(avatar);
+            expect(body.measurements).toEqual(profile.body.measurements);
+            expect(body.nutrition).toMatchObject({
+              bmrKcalPerDay: profile.body.nutrition.bmrKcalPerDay,
+              tdeeKcalPerDay: profile.body.nutrition.tdeeKcalPerDay,
+              calorieTargetKcalPerDay:
+                profile.body.nutrition.calorieTargetKcalPerDay,
+            });
+          });
+        await request(server)
+          .get('/v1/users/me')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .expect(200)
+          .expect(({ body }) => expect(body.avatar).toEqual(avatar));
+        await request(server)
+          .get('/v1/users/me')
+          .set('Authorization', `Bearer ${bob.token}`)
+          .expect(200)
+          .expect(({ body }) => expect(body.avatar).toBeNull());
+        await request(server)
+          .patch('/v1/users/me')
+          .set('Authorization', `Bearer ${alice.token}`)
+          .send({ avatar: { ...avatar, url: 'https://evil.example/a.svg' } })
+          .expect(400);
+
+        const [persistedAvatar] = (await empty.query(
+          'SELECT avatar_config AS "avatarConfig" FROM user_profiles WHERE user_id=$1',
+          [alice.userId],
+        )) as Array<{ avatarConfig: Record<string, unknown> }>;
+        expect(persistedAvatar.avatarConfig).toEqual(avatar);
+
         const food = await request(server)
           .post('/v1/foods/manual')
           .set('Authorization', `Bearer ${alice.token}`)

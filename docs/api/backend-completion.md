@@ -11,8 +11,8 @@ validações e respostas de erro completa.
 | `POST /auth/register` | Cadastro, perfil inicial e aceite versionado | `{"email":"ana@example.com","username":"ana_01","password":"senha-forte-123","termsAccepted":true}` |
 | `POST /auth/login` | JWT | `{"identifier":"ana_01","password":"senha-forte-123"}` |
 | `GET /auth/me` | Sessão autenticada | sem corpo |
-| `GET /users/me` | Perfil e métricas | sem corpo |
-| `PATCH /users/me` | Onboarding/edição | `{"displayName":"Ana","birthDate":"1995-04-20","biologicalSex":"FEMALE","heightCm":165,"currentWeightKg":62,"goal":"MAINTENANCE","activityLevel":"MODERATE","timezone":"America/Sao_Paulo"}` |
+| `GET /users/me` | Perfil, avatar e métricas | sem corpo |
+| `PATCH /users/me` | Onboarding/edição/avatar | `{"avatar":{"style":"adventurer","seed":"abc123xyz789"}}` |
 | `GET /users/me/measurements` | Histórico de medidas | sem corpo |
 
 ## Alimentos, planos, consumo e progresso

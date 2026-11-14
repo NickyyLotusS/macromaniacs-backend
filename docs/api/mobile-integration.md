@@ -19,7 +19,7 @@ Contrato validado em 13/11/2026 contra o frontend
 | Domínio | Rotas |
 |---|---|
 | Auth | `POST /auth/register`, `POST /auth/login`, `GET /auth/me` |
-| Perfil | `GET/PATCH /users/me` |
+| Perfil | `GET/PATCH /users/me` (inclui `avatar`) |
 | Alimentos | `GET /foods`, `/foods/:id`, `/foods/barcode/:barcode`; `POST /foods/manual` |
 | Refeições | `POST /meals/manual`; `GET /meals`, `/meals/:id`; `PATCH/DELETE /meals/:id` |
 | Progresso | `GET /progress/daily`, `/progress/history` |
@@ -34,6 +34,13 @@ versionamento do NestJS.
 
 - O backend é fonte de verdade para `onboardingCompleted`, TMB, TDEE, meta
   calórica, totais das refeições, snapshots e pontos.
+- O backend também é fonte de verdade para o avatar próprio. O campo público é
+  `avatar: { style, seed } | null`, persistido na coluna JSONB
+  `user_profiles.avatar_config`; `{}` no banco é devolvido como `null`.
+- Um PATCH exclusivo de avatar funciona antes do onboarding e não o conclui,
+  não cria medidas e não altera campos nutricionais.
+- Recompensas cosméticas `AVATAR` permanecem itens independentes de catálogo e
+  inventário. Esta integração não compra, equipa nem substitui recompensas.
 - Sem plano alimentar ativo, o snapshot diário usa a meta calculada do perfil.
   Para `NOT_INFORMED`, a meta pode continuar `null`; o frontend não usa fórmula
   alternativa.

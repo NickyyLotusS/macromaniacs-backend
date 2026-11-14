@@ -68,7 +68,7 @@ Relação opcional 1:1 com `users`, usando `user_id` como PK e FK. A ausência d
 | `dietary_restrictions_note` | TEXT            | Opcional; texto livre não vazio quando informado |
 | `goal`                      | `UserGoal`      | Obrigatório, sem default                         |
 | `activity_level`            | `ActivityLevel` | Obrigatório                                      |
-| `avatar_config`             | JSONB           | Objeto JSON, default `{}`                        |
+| `avatar_config`             | JSONB           | DiceBear `{style, seed}`; `{}` = sem avatar      |
 | `created_at`, `updated_at`  | TIMESTAMPTZ     | Auditoria                                        |
 
 ### `body_measurements`
